@@ -1,0 +1,51 @@
+steps:
+  # Build the Docker image with build arguments
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'VITE_API_URL=${_VITE_API_URL}'
+      - '--build-arg'
+      - 'VITE_SUPABASE_URL=${_VITE_SUPABASE_URL}'
+      - '--build-arg'
+      - 'VITE_SUPABASE_PUBLIC=${_VITE_SUPABASE_PUBLIC}'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/estatebid-frontend:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/estatebid-frontend:latest'
+      - '.'
+
+  # Push the image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/estatebid-frontend:$COMMIT_SHA'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/estatebid-frontend:latest'
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'estatebid-front-end'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/estatebid-frontend:$COMMIT_SHA'
+      - '--region'
+      - 'us-west1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+
+images:
+  - 'gcr.io/$PROJECT_ID/estatebid-frontend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/estatebid-frontend:latest'
+
+substitutions:
+  _VITE_API_URL: 'https://estatebid-backend-957344212280.us-central1.run.app'
+  _VITE_SUPABASE_URL: 'https://eupvkesgchaanbatzpuo.supabase.co'
+  _VITE_SUPABASE_PUBLIC: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1cHZrZXNnY2hhYW5iYXR6cHVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1NTg1ODcsImV4cCI6MjA3NTEzNDU4N30.dkiBmXaN9zhXkS52Fld0a_OeJkcQTMOy7rqQHjATR_I'
