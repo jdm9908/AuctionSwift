@@ -26,7 +26,7 @@ root_dir = os.path.dirname(os.path.dirname(__file__))
 load_dotenv(os.path.join(root_dir, '.env'))
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 OPENAI_DESCRIPTION_KEY = os.getenv("OPENAI_DESCRIPTION_KEY")
 OPENAI_COMPS_KEY = os.getenv("OPENAI_COMPS_KEY")
 
@@ -65,6 +65,47 @@ app.add_middleware(
 @app.get("/")
 def root():
     return {"message": "all good"}
+
+# ============================================
+# SIMPLE DESCRIPTION ENDPOINT (FAST, SAFE)
+# ============================================
+class SimpleDescriptionRequest(BaseModel):
+    title: str
+    brand: str | None = None
+    year: str | None = None
+    notes: str | None = None
+
+@app.post("/simple-generate-description")
+async def simple_generate_description(req: SimpleDescriptionRequest):
+    """
+    Lightweight: generates a 2–4 sentence item description.
+    No agents. No web search. Fast & cheap.
+    """
+
+    if not openai_description_client:
+        raise HTTPException(500, "OpenAI description API key not configured.")
+
+    prompt = f"""
+    Write a concise 2–4 sentence auction listing description for:
+
+    Title: {req.title}
+    Brand: {req.brand}
+    Year: {req.year}
+    Notes: {req.notes}
+
+    Tone: confident and descriptive.
+    """
+
+    response = openai_description_client.responses.create(
+        model="gpt-4.1-mini",
+        input=prompt
+    )
+
+    # Extract plain text safely
+    text = response.output_text.strip()
+
+    return {"description": text}
+
 
 from fastapi.responses import FileResponse
 import tempfile

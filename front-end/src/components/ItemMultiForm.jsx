@@ -13,6 +13,7 @@ import { uploadItemImage } from '../services/storage';
 export function ItemMultiForm({ auctionId }) {
   const { dispatch } = useAuction();
   const [loading, setLoading] = useState(false);
+  const [generatingDescFor, setGeneratingDescFor] = useState(null);
   const [error, setError] = useState('');
   const [items, setItems] = useState([
     {
@@ -127,7 +128,15 @@ export function ItemMultiForm({ auctionId }) {
         });
 
         const itemId = createdItem.item.item_id;
-        
+        // --- SAVE AI DESCRIPTION TO BACKEND (important!) ---
+        if (aiDescription) {
+          try {
+            await updateItem(itemId, { ai_description: aiDescription });
+          } catch (err) {
+            console.error("Failed to save AI description:", err);
+          }
+        }
+
         // Now upload all images to Supabase Storage
         const uploadedImages = [];
         

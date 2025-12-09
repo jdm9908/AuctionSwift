@@ -164,9 +164,14 @@ export function ItemCard({ item }) {
         <div className="flex-1">
           <CardHeader className="pb-3 pt-4">
             <div className="flex items-start justify-between gap-2">
-              <CardTitle className="text-xl">
-                {item.title}
-              </CardTitle>
+            <CardTitle className="text-xl">{item.title}</CardTitle>
+
+            {item.ai_description && (
+              <p className="text-sm text-gray-600 mt-1">
+                {item.ai_description}
+              </p>
+            )}
+
 
               {/* Button Row */}
               <div className="flex gap-2">
