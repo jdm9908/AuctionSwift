@@ -1,16 +1,7 @@
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-
-# Monkey-patch httpx to disable HTTP/2 before any other imports
-# This fixes WinError 10035 on Windows with HTTP/2 connections
 import httpx
-_original_client_init = httpx.Client.__init__
-def _patched_client_init(self, *args, **kwargs):
-    kwargs['http2'] = False  # Force HTTP/1.1
-    return _original_client_init(self, *args, **kwargs)
-httpx.Client.__init__ = _patched_client_init
-
 from supabase import create_client, Client
 from openai import OpenAI
 from pydantic import BaseModel
