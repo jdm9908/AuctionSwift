@@ -93,9 +93,20 @@ export function AuctionDetailPage() {
     }
   };
 
-  const handleExport = (format) => {
-    // Export logic will go here
+  const handleExport = async (format) => {
+    if (format === "excel") {
+      const res = await fetch(`${API_BASE_URL}/auctions/${auction_id}/excel`);
+      const blob = await res.blob();
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${auction.auction_name}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
   };
+
 
   const handlePublish = () => {
     // Navigate to settings page to configure before publishing
@@ -226,42 +237,6 @@ export function AuctionDetailPage() {
               </Button>
             </Link>
           )}
-
-          <div className="relative" ref={exportMenuRef}>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setShowExportMenu(!showExportMenu)}
-            >
-              <Download className="h-4 w-4" />
-            </Button>
-
-            {/* Export Dropdown Menu */}
-            {showExportMenu && (
-              <div className="absolute right-0 top-full mt-2 bg-card border rounded-lg shadow-lg overflow-hidden w-56 z-10">
-                <button
-                  className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-accent transition-colors text-sm text-left"
-                  onClick={() => handleExport('excel')}
-                >
-                  <FileSpreadsheet className="h-4 w-4 text-green-600" />
-                  <div>
-                    <div className="font-medium">Export to Excel</div>
-                    <div className="text-xs text-muted-foreground">Download as .xlsx</div>
-                  </div>
-                </button>
-                <button
-                  className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-accent transition-colors text-sm text-left"
-                  onClick={() => handleExport('pdf-catalog')}
-                >
-                  <Image className="h-4 w-4 text-blue-600" />
-                  <div>
-                    <div className="font-medium">PDF Catalog</div>
-                    <div className="text-xs text-muted-foreground">Formatted with images</div>
-                  </div>
-                </button>
-              </div>
-            )}
-          </div>
 
           {/* Publish Button - Only when draft (goes to settings first) */}
           {auction.status === 'draft' && (

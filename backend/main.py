@@ -66,6 +66,49 @@ app.add_middleware(
 def root():
     return {"message": "all good"}
 
+from fastapi.responses import FileResponse
+import tempfile
+from openpyxl import Workbook
+
+@app.get("/auctions/{auction_id}/excel")
+def export_excel(auction_id: str):
+    # Fetch auction
+    auction = supabase.table("auctions").select("*").eq("auction_id", auction_id).execute()
+    if not auction.data:
+        raise HTTPException(404, "Auction not found")
+    auction = auction.data[0]
+
+    # Fetch items
+    items = supabase.table("items").select("*").eq("auction_id", auction_id).execute().data
+
+    # Create workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Items"
+
+    # Header
+    ws.append(["Title", "Brand", "Model", "Year", "Image 1 URL"])
+
+    # Rows
+    for item in items:
+        ws.append([
+            item.get("title", ""),
+            item.get("brand", ""),
+            item.get("model", ""),
+            item.get("year", ""),
+            item.get("image_url_1", ""),
+        ])
+
+    # Save to temp file
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx")
+    wb.save(temp_file.name)
+
+    return FileResponse(
+        temp_file.name,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename=f"{auction['auction_name']}.xlsx"
+    )
+
 # PROFILE ENDPOINTS
 
 # create a new user/profile
