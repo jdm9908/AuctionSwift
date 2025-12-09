@@ -5,163 +5,185 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 
 export function HomePage() {
-  // ------------------------------
-  // ONE-TIME TYPEWRITER ANIMATION
-  // ------------------------------
+  // TYPEWRITER ANIMATION FOR TITLE
   const fullText = "EstateBid";
   const [displayText, setDisplayText] = useState("");
-  const [showCursor, setShowCursor] = useState(true);
 
   useEffect(() => {
     let i = 0;
     const interval = setInterval(() => {
-      setDisplayText(fullText.slice(0, i + 1));
-      i++;
-
-      if (i === fullText.length) {
+      i += 1;
+      setDisplayText(fullText.slice(0, i));
+      if (i >= fullText.length) {
         clearInterval(interval);
-        setTimeout(() => setShowCursor(false), 300); // hide cursor shortly after
       }
-    }, 80);
-
+    }, 100);
     return () => clearInterval(interval);
   }, []);
 
-  // ------------------------------
-  // PARALLAX EFFECT
-  // ------------------------------
+  // MOVING BACKGROUND
   const { scrollY } = useScroll();
-  const parallax1 = useTransform(scrollY, [0, 600], [0, 120]);
-  const parallax2 = useTransform(scrollY, [0, 600], [0, -80]);
+  const bgY1 = useTransform(scrollY, [0, 600], [0, 150]);
+  const bgY2 = useTransform(scrollY, [0, 600], [0, -120]);
 
-  // ------------------------------
-  // SCROLL TRIGGERS FOR CARDS
-  // ------------------------------
-  const { ref: cardRef1, inView: visible1 } = useInView({ threshold: 0.2 });
-  const { ref: cardRef2, inView: visible2 } = useInView({ threshold: 0.2 });
-  const { ref: cardRef3, inView: visible3 } = useInView({ threshold: 0.2 });
+  const { ref: s1Ref, inView: s1Visible } = useInView({ threshold: 0.15 });
+  const { ref: s2Ref, inView: s2Visible } = useInView({ threshold: 0.15 });
+  const { ref: s3Ref, inView: s3Visible } = useInView({ threshold: 0.15 });
+  const { ref: s4Ref, inView: s4Visible } = useInView({ threshold: 0.15 });
+  const { ref: s5Ref, inView: s5Visible } = useInView({ threshold: 0.15 });
+
+  const stepCommon =
+    "p-6 md:p-7 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/15 shadow-lg text-center";
 
   return (
-    <div className="relative w-full overflow-hidden bg-gradient-to-b from-black via-zinc-900 to-indigo-950 text-white">
-
-      {/* ============================================ */}
-      {/* APPLE VISION PRO–STYLE PARALLAX BACKGROUND */}
-      {/* ============================================ */}
+    <div className="relative w-full min-h-screen overflow-hidden bg-gradient-to-b from-black via-zinc-900 to-indigo-950 text-white">
+      {/* MOVING BACKGROUND ORBS */}
       <motion.div
-        style={{ y: parallax1 }}
-        className="absolute top-[-20%] left-[-10%] w-[50rem] h-[50rem] bg-indigo-600/20 blur-[200px] rounded-full"
+        style={{ y: bgY1 }}
+        animate={{ x: [0, 60, 0] }}
+        transition={{ duration: 24, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute -top-40 -left-32 w-[32rem] h-[32rem] bg-indigo-500/40 blur-[140px] rounded-full"
       />
       <motion.div
-        style={{ y: parallax2 }}
-        className="absolute bottom-[-25%] right-[-15%] w-[45rem] h-[45rem] bg-indigo-400/10 blur-[180px] rounded-full"
+        style={{ y: bgY2 }}
+        animate={{ x: [0, -70, 0] }}
+        transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute -bottom-56 -right-40 w-[36rem] h-[36rem] bg-purple-500/35 blur-[160px] rounded-full"
+      />
+      <motion.div
+        animate={{ x: [0, 40, -20, 0] }}
+        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+        className="pointer-events-none absolute top-1/3 right-1/4 w-72 h-72 bg-sky-400/25 blur-[130px] rounded-full"
       />
 
-      {/* ============================================ */}
-      {/* HERO SECTION */}
-      {/* ============================================ */}
-      <section className="min-h-screen flex flex-col items-center justify-center px-6 text-center relative z-10">
-
-        {/* ONE-TIME TYPEWRITER TITLE */}
+      {/* HERO SECTION - FULL SCREEN SO STEPS ARE BELOW FOLD */}
+      <section className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 text-center">
         <motion.h1
-          initial={{ opacity: 0, y: 25 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="text-6xl md:text-7xl font-extrabold tracking-tight drop-shadow-xl mb-6"
+          className="text-5xl md:text-7xl font-extrabold tracking-tight drop-shadow-xl mb-6"
         >
           {displayText}
-          {showCursor && <span className="text-white">|</span>}
         </motion.h1>
 
-        {/* SLOGAN */}
+        {/* NEW HOOKING SLOGAN */}
         <motion.p
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-xl text-neutral-200 italic font-light mb-6"
+          transition={{ delay: 0.25, duration: 0.5 }}
+          className="text-xl md:text-2xl text-neutral-200 italic font-light mb-5 max-w-2xl"
         >
-          Where every item finds its story.
+          Turn a lifetime of belongings into a weekend of bids.
         </motion.p>
 
-        {/* SUBTEXT */}
+        {/* SHORT DESCRIPTION WITHOUT FEE MENTION */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="text-lg text-neutral-400 max-w-2xl"
+          transition={{ delay: 0.4, duration: 0.55 }}
+          className="text-base md:text-lg text-neutral-400 max-w-3xl"
         >
-          Precision research, AI-powered clarity, instant comps — for auctioneers who move fast.
+          Built for estate liquidation. Upload belongings, let AI write descriptions and pull
+          comps, and run full household auctions from one simple place.
         </motion.p>
       </section>
 
-      {/* ============================================ */}
-      {/* HOW IT WORKS — GLASSMORPHISM CARDS */}
-      {/* ============================================ */}
-      <section className="py-24 max-w-6xl mx-auto px-6 text-center">
-        <h2 className="text-4xl font-bold mb-16">How It Works</h2>
+      {/* HOW ESTATEBID WORKS - CENTERED, ONLY VISIBLE AFTER SCROLL */}
+      <section className="relative z-10 py-20 md:py-24 max-w-6xl mx-auto px-6">
+        <h2 className="text-3xl md:text-4xl font-bold mb-14 text-center">
+          How EstateBid Works
+        </h2>
 
-        <div className="grid md:grid-cols-3 gap-10">
-
-          {/* CARD 1 */}
+        <div className="grid gap-7 md:grid-cols-2 lg:grid-cols-3 justify-items-center">
+          {/* Step 1 */}
           <motion.div
-            ref={cardRef1}
+            ref={s1Ref}
             initial={{ opacity: 0, y: 40 }}
-            animate={visible1 ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6 }}
-            className="p-8 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 hover:border-indigo-400/40 transition shadow-lg"
+            animate={s1Visible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+            className={stepCommon}
           >
-            <h3 className="text-3xl font-semibold mb-4">1. Upload</h3>
-            <p className="text-neutral-300">
-              Import item photos — our AI analyzes them instantly.
+            <h3 className="text-lg font-semibold mb-2">1. Create your estate sale</h3>
+            <p className="text-sm md:text-base text-neutral-200">
+              Sign in and set up a new estate auction in minutes, built for large multi item
+              liquidations instead of one item at a time.
             </p>
           </motion.div>
 
-          {/* CARD 2 */}
+          {/* Step 2 */}
           <motion.div
-            ref={cardRef2}
+            ref={s2Ref}
             initial={{ opacity: 0, y: 40 }}
-            animate={visible2 ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6 }}
-            className="p-8 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 hover:border-indigo-400/40 transition shadow-lg"
+            animate={s2Visible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.05 }}
+            className={stepCommon}
           >
-            <h3 className="text-3xl font-semibold mb-4">2. Describe</h3>
-            <p className="text-neutral-300">
-              Generate professional auction descriptions in seconds.
+            <h3 className="text-lg font-semibold mb-2">2. Upload items</h3>
+            <p className="text-sm md:text-base text-neutral-200">
+              Drop in photos and a few basics like brand, model, year and short notes. No long
+              form copy, no spreadsheets.
             </p>
           </motion.div>
 
-          {/* CARD 3 */}
+          {/* Step 3 */}
           <motion.div
-            ref={cardRef3}
+            ref={s3Ref}
             initial={{ opacity: 0, y: 40 }}
-            animate={visible3 ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6 }}
-            className="p-8 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 hover:border-indigo-400/40 transition shadow-lg"
+            animate={s3Visible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className={stepCommon}
           >
-            <h3 className="text-3xl font-semibold mb-4">3. Compare</h3>
-            <p className="text-neutral-300">
-              Instantly view eBay comps matched to your items.
+            <h3 className="text-lg font-semibold mb-2">3. Let AI do the work</h3>
+            <p className="text-sm md:text-base text-neutral-200">
+              EstateBid AI writes professional descriptions and pulls market comps so you skip
+              manual research and pricing.
             </p>
           </motion.div>
 
+          {/* Step 4 */}
+          <motion.div
+            ref={s4Ref}
+            initial={{ opacity: 0, y: 40 }}
+            animate={s4Visible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className={stepCommon}
+          >
+            <h3 className="text-lg font-semibold mb-2">4. Configure your auction</h3>
+            <p className="text-sm md:text-base text-neutral-200">
+              Set times, pickup location, shipping rules, starting prices and bid increments
+              from one clean control panel.
+            </p>
+          </motion.div>
+
+          {/* Step 5 */}
+          <motion.div
+            ref={s5Ref}
+            initial={{ opacity: 0, y: 40 }}
+            animate={s5Visible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className={stepCommon + " md:col-span-2 lg:col-span-1"}
+          >
+            <h3 className="text-lg font-semibold mb-2">5. Launch, monitor and get paid</h3>
+            <p className="text-sm md:text-base text-neutral-200">
+              Go live, watch bids in real time, let auctions close automatically and manage
+              payouts from a single dashboard.
+            </p>
+          </motion.div>
         </div>
       </section>
 
-      {/* ============================================ */}
-      {/* FINAL CALL TO ACTION */}
-      {/* ============================================ */}
-      <section className="flex justify-center py-24">
+      {/* CALL TO ACTION */}
+      <section className="relative z-10 flex justify-center pb-24">
         <motion.div whileHover={{ scale: 1.05 }} className="relative group">
           <Link to="/login">
-            <button className="px-12 py-5 text-xl font-semibold bg-white text-black rounded-full shadow-2xl flex items-center gap-2 relative z-20">
-              Get Started <ArrowRight className="w-6 h-6" />
+            <button className="px-10 md:px-12 py-4 md:py-5 text-lg md:text-xl font-semibold bg-white text-black rounded-full shadow-2xl flex items-center gap-2 relative z-20">
+              Get Started <ArrowRight className="w-5 h-5 md:w-6 md:h-6" />
             </button>
           </Link>
-
-          {/* NEON GLOW */}
-          <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition duration-300 bg-indigo-500 blur-xl"></div>
+          <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition duration-300 bg-indigo-500 blur-xl" />
         </motion.div>
       </section>
-
     </div>
   );
 }
