@@ -49,3 +49,6 @@ substitutions:
   _VITE_API_URL: 'https://estatebid-backend-957344212280.us-central1.run.app'
   _VITE_SUPABASE_URL: 'https://eupvkesgchaanbatzpuo.supabase.co'
   _VITE_SUPABASE_PUBLIC: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1cHZrZXNnY2hhYW5iYXR6cHVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1NTg1ODcsImV4cCI6MjA3NTEzNDU4N30.dkiBmXaN9zhXkS52Fld0a_OeJkcQTMOy7rqQHjATR_I'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
