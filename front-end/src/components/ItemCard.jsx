@@ -25,7 +25,7 @@ const formatDateAmerican = (dateString) => {
   }
 };
 
-export function ItemCard({ item }) {
+export function ItemCard({ item, isDemo = false }) {
   const { state, dispatch } = useAuction();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -166,12 +166,6 @@ export function ItemCard({ item }) {
             <div className="flex items-start justify-between gap-2">
             <CardTitle className="text-xl">{item.title}</CardTitle>
 
-            {item.ai_description && (
-              <p className="text-sm text-gray-600 mt-1">
-                {item.ai_description}
-              </p>
-            )}
-
 
               {/* Button Row */}
               <div className="flex gap-2">
@@ -185,11 +179,6 @@ export function ItemCard({ item }) {
                   title="Delete item"
                 >
                   <Trash2 className="h-4 w-4" />
-                </Button>
-
-                {/* Export Button */}
-                <Button onClick={handleExport}>
-                  Export to Excel
                 </Button>
               </div>
             </div>
@@ -205,7 +194,7 @@ export function ItemCard({ item }) {
               </div>
             )}
 
-            {itemComps.length > 0 && (
+            {!isDemo && itemComps.length > 0 && (
               <>
                 <Separator className="my-3" />
                 <div>
@@ -236,7 +225,7 @@ export function ItemCard({ item }) {
               </>
             )}
 
-            {itemComps.length === 0 && (
+            {!isDemo && itemComps.length === 0 && (
               <>
                 <Separator className="my-3" />
                 <div className="text-sm text-muted-foreground italic">

@@ -434,7 +434,7 @@ export function AuctionDetailPage() {
             </h2>
             <div className="space-y-4">
               {auctionItems.map(item => (
-                <ItemCard key={item.item_id} item={item} auctionStatus={auction.status} />
+                <ItemCard key={item.item_id} item={item} auctionStatus={auction.status} isDemo={auction.is_demo} />
               ))}
             </div>
           </div>

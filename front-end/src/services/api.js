@@ -14,8 +14,8 @@ const handleResponse = async (response) => {
 // AUCTION API
 // ============================================
 
-export const createAuction = async (profileId, auctionName) => {
-  const response = await fetch(`${API_BASE_URL}/auctions?profile_id=${profileId}&auction_name=${encodeURIComponent(auctionName)}`, {
+export const createAuction = async (profileId, auctionName, isDemo = false) => {
+  const response = await fetch(`${API_BASE_URL}/auctions?profile_id=${profileId}&auction_name=${encodeURIComponent(auctionName)}&is_demo=${isDemo}`, {
     method: 'POST',
   });
   return handleResponse(response);
@@ -468,4 +468,14 @@ export const fetchAllUserData = async (profileId) => {
     console.error('Failed to fetch all user data:', error);
     throw error;
   }
+};
+
+// ============================================
+// DEMO MODE API
+// ============================================
+
+// Get demo auction results (price guessing game)
+export const getDemoResults = async (auctionId) => {
+  const response = await fetch(`${API_BASE_URL}/auctions/${auctionId}/demo-results`);
+  return handleResponse(response);
 };

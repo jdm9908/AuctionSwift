@@ -36,32 +36,32 @@ export function HelpModal({ open, onOpenChange }) {
           <div className="space-y-4 mt-4">
             {/* Quick Actions */}
             <div className="grid grid-cols-3 gap-3">
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <Card className="opacity-60">
                 <CardHeader className="pb-2">
-                  <Book className="h-6 w-6 mb-1 text-primary" />
+                  <Book className="h-6 w-6 mb-1 text-muted-foreground" />
                   <CardTitle className="text-sm">Documentation</CardTitle>
                   <CardDescription className="text-xs">
-                    Browse guides
+                    Coming Soon
                   </CardDescription>
                 </CardHeader>
               </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <Card className="opacity-60">
                 <CardHeader className="pb-2">
-                  <MessageCircle className="h-6 w-6 mb-1 text-primary" />
+                  <MessageCircle className="h-6 w-6 mb-1 text-muted-foreground" />
                   <CardTitle className="text-sm">Live Chat</CardTitle>
                   <CardDescription className="text-xs">
-                    Chat with support
+                    Coming Soon
                   </CardDescription>
                 </CardHeader>
               </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <Card className="opacity-60">
                 <CardHeader className="pb-2">
-                  <Mail className="h-6 w-6 mb-1 text-primary" />
+                  <Mail className="h-6 w-6 mb-1 text-muted-foreground" />
                   <CardTitle className="text-sm">Email</CardTitle>
                   <CardDescription className="text-xs">
-                    Send a message
+                    Coming Soon
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -95,21 +95,17 @@ export function HelpModal({ open, onOpenChange }) {
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-xs text-muted-foreground">
-                  Contact our support team and we'll get back to you soon.
+                  More support options coming soon.
                 </p>
                 <div className="flex gap-2">
-                  <Button size="sm">
+                  <Button size="sm" disabled>
                     <Mail className="h-3 w-3 mr-1.5" />
-                    Email
+                    Email - Coming Soon
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" disabled>
                     <MessageCircle className="h-3 w-3 mr-1.5" />
-                    Chat
+                    Chat - Coming Soon
                   </Button>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  <p>support@estatebid.com</p>
-                  <p>Mon-Fri, 9am-5pm EST</p>
                 </div>
               </CardContent>
             </Card>

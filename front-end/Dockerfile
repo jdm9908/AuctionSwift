@@ -3,16 +3,26 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Build arguments for Vite environment variables
+ARG VITE_API_URL
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_PUBLIC
+
+# Set as environment variables for the build
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_PUBLIC=$VITE_SUPABASE_PUBLIC
+
 # Copy package files
 COPY package.json package-lock.json* ./
 
 # Install dependencies
 RUN npm ci
 
-# Copy source code (includes .env.production for Vite)
+# Copy source code
 COPY . .
 
-# Build the application (Vite uses .env.production automatically)
+# Build the application
 RUN npm run build
 
 # Stage 2: Production

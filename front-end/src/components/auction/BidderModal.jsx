@@ -5,17 +5,20 @@ import { Input } from '../ui/input';
 import { Card, CardContent } from '../ui/card';
 
 // Bidder Registration Modal
-const BidderModal = ({ isOpen, onClose, onRegister }) => {
+const BidderModal = ({ isOpen, onClose, onRegister, isDemo = false }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim()) return;
+    if (!name.trim()) return;
+    // For demo mode, use a placeholder email; for regular auctions require email
+    if (!isDemo && !email.trim()) return;
     
     setIsSubmitting(true);
-    onRegister({ name: name.trim(), email: email.trim() });
+    const bidderEmail = isDemo ? 'demo@estatebid.com' : email.trim();
+    onRegister({ name: name.trim(), email: bidderEmail });
     setIsSubmitting(false);
     onClose();
   };
@@ -28,7 +31,9 @@ const BidderModal = ({ isOpen, onClose, onRegister }) => {
         <CardContent className="pt-6">
           <div className="flex items-center gap-2 mb-4">
             <User className="w-5 h-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-foreground">Register to Bid</h2>
+            <h2 className="text-lg font-semibold text-foreground">
+              {isDemo ? 'Enter Your Name to Play' : 'Register to Bid'}
+            </h2>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -39,32 +44,34 @@ const BidderModal = ({ isOpen, onClose, onRegister }) => {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="How you'll appear to other bidders"
+                placeholder={isDemo ? 'Enter your name' : 'How you\'ll appear to other bidders'}
                 required
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">
-                Email *
-              </label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="For bid notifications"
-                required
-              />
-            </div>
+            {!isDemo && (
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  Email *
+                </label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="For bid notifications"
+                  required
+                />
+              </div>
+            )}
             <div className="flex gap-3 pt-2">
               <Button type="button" variant="outline" onClick={onClose} className="flex-1">
                 Cancel
               </Button>
               <Button 
                 type="submit" 
-                disabled={isSubmitting || !name.trim() || !email.trim()}
-                className="flex-1"
+                disabled={isSubmitting || !name.trim() || (!isDemo && !email.trim())}
+                className={`flex-1 ${isDemo ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
               >
-                Start Bidding
+                {isDemo ? 'Start Guessing' : 'Start Bidding'}
               </Button>
             </div>
           </form>

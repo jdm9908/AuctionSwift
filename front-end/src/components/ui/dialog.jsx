@@ -24,7 +24,7 @@ const DialogContent = React.forwardRef(({ className, children, onClose, ...props
   <div
     ref={ref}
     className={cn(
-      "relative bg-card border rounded-lg shadow-lg w-[90vw] max-w-2xl max-h-[70vh] overflow-hidden",
+      "relative bg-card border rounded-lg shadow-lg w-[90vw] max-w-2xl max-h-[85vh] overflow-y-auto",
       className
     )}
     {...props}

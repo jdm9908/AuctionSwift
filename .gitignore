@@ -4,13 +4,13 @@ venv/
 __pycache__/
 *.pyc
 
-# Env files (DO NOT COMMIT secrets)
+# Env files (DO NOT COMMIT)
 .env
 .env.local
+.env.production
 front-end/.env
 front-end/.env.local
-# Allow .env.production (only contains public values)
-!front-end/.env.production
+front-end/.env.production
 
 # Node (future frontends)
 node_modules/

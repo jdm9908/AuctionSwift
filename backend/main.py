@@ -26,7 +26,7 @@ root_dir = os.path.dirname(os.path.dirname(__file__))
 load_dotenv(os.path.join(root_dir, '.env'))
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 OPENAI_DESCRIPTION_KEY = os.getenv("OPENAI_DESCRIPTION_KEY")
 OPENAI_COMPS_KEY = os.getenv("OPENAI_COMPS_KEY")
 
@@ -224,7 +224,7 @@ def make_payment(profile_id: str):
 
 # make new auction
 @app.post("/auctions")
-def create_auction(profile_id: str, auction_name: str):
+def create_auction(profile_id: str, auction_name: str, is_demo: bool = False):
     # check inputs
     if not auction_name.strip():
         raise HTTPException(400, "Auction name cannot be empty")
@@ -246,7 +246,8 @@ def create_auction(profile_id: str, auction_name: str):
     # create auction
     result = supabase.table("auctions").insert({
         "profile_id": profile_id,
-        "auction_name": auction_name.strip()
+        "auction_name": auction_name.strip(),
+        "is_demo": is_demo
     }).execute()
     if not result.data:
         raise HTTPException(500, "Failed to create auction")
@@ -1500,10 +1501,10 @@ def update_item_auction_settings(item_id: str, settings: ItemAuctionSettings):
     return res.data[0]
 
 
-# PLACE a bid on an item
+# PLACE a bid on an item (or price guess for demo auctions)
 @app.post("/items/{item_id}/bid")
 def place_bid(item_id: str, bid: BidRequest):
-    """Place a bid on an item"""
+    """Place a bid on an item (or price guess for demo auctions)"""
     # Get item and verify it exists
     item = supabase.table("items").select("*, auctions(*)").eq("item_id", item_id).execute()
     if not item.data:
@@ -1511,6 +1512,9 @@ def place_bid(item_id: str, bid: BidRequest):
     
     item_data = item.data[0]
     auction_data = item_data.get("auctions", {})
+    
+    # Check if this is a demo auction
+    is_demo = auction_data.get("is_demo", False)
     
     # Check auction is published
     if auction_data.get("status") != "published":
@@ -1531,23 +1535,31 @@ def place_bid(item_id: str, bid: BidRequest):
     if item_data.get("is_sold"):
         raise HTTPException(400, "Item has already been sold")
     
-    # Get current highest bid
-    current_bids = supabase.table("bids").select("*").eq("item_id", item_id).order("amount", desc=True).limit(1).execute()
-    
-    starting_bid = item_data.get("starting_bid", 0) or 0
-    min_increment = item_data.get("min_increment", 1) or 1
-    
-    # If there are existing bids, new bid must be higher than current + increment
-    # If no bids yet, allow bidding at exactly the starting bid
-    if current_bids.data:
-        current_highest = current_bids.data[0]["amount"]
-        min_required = current_highest + min_increment
+    # For demo auctions, skip minimum bid validation - any positive amount is valid (max $100,000)
+    if is_demo:
+        if bid.bid_amount <= 0:
+            raise HTTPException(400, "Guess must be a positive amount")
+        if bid.bid_amount > 100000:
+            raise HTTPException(400, "Guess must be under $100,000")
     else:
-        # No bids yet - allow the starting bid amount
-        min_required = starting_bid
-    
-    if bid.bid_amount < min_required:
-        raise HTTPException(400, f"Bid must be at least ${min_required:.2f}")
+        # Regular auction - enforce minimum bid requirements
+        # Get current highest bid
+        current_bids = supabase.table("bids").select("*").eq("item_id", item_id).order("amount", desc=True).limit(1).execute()
+        
+        starting_bid = item_data.get("starting_bid", 0) or 0
+        min_increment = item_data.get("min_increment", 1) or 1
+        
+        # If there are existing bids, new bid must be higher than current + increment
+        # If no bids yet, allow bidding at exactly the starting bid
+        if current_bids.data:
+            current_highest = current_bids.data[0]["amount"]
+            min_required = current_highest + min_increment
+        else:
+            # No bids yet - allow the starting bid amount
+            min_required = starting_bid
+        
+        if bid.bid_amount < min_required:
+            raise HTTPException(400, f"Bid must be at least ${min_required:.2f}")
     
     # Generate a UUID for guest bidders based on their email (consistent per email)
     import hashlib
@@ -1555,7 +1567,7 @@ def place_bid(item_id: str, bid: BidRequest):
     email_hash = hashlib.md5(bid.bidder_email.lower().encode()).hexdigest()
     guest_bidder_id = f"{email_hash[:8]}-{email_hash[8:12]}-{email_hash[12:16]}-{email_hash[16:20]}-{email_hash[20:32]}"
     
-    # Insert bid
+    # Insert bid (or guess for demo)
     bid_result = supabase.table("bids").insert({
         "item_id": item_id,
         "bidder_id": guest_bidder_id,
@@ -1567,13 +1579,15 @@ def place_bid(item_id: str, bid: BidRequest):
     if not bid_result.data:
         raise HTTPException(500, "Failed to place bid")
     
-    # Update item's current_bid
-    supabase.table("items").update({"current_bid": bid.bid_amount}).eq("item_id", item_id).execute()
+    # Update item's current_bid (for regular auctions)
+    if not is_demo:
+        supabase.table("items").update({"current_bid": bid.bid_amount}).eq("item_id", item_id).execute()
     
     return {
-        "message": "Bid placed successfully",
+        "message": "Guess recorded successfully" if is_demo else "Bid placed successfully",
         "bid": bid_result.data[0],
-        "current_highest": bid.bid_amount
+        "current_highest": bid.bid_amount,
+        "is_demo": is_demo
     }
 
 
@@ -1706,6 +1720,91 @@ def list_orders(buyer_email: str = None, auction_id: str = None):
     return {"orders": orders.data if orders.data else []}
 
 
+# ============================================
+# DEMO MODE ENDPOINTS
+# ============================================
+
+# GET demo results - calculate winners based on closest guess to comp price
+@app.get("/auctions/{auction_id}/demo-results")
+def get_demo_results(auction_id: str):
+    """Get demo auction results - winner is closest to average comp price"""
+    # Get auction and verify it's a demo
+    auction = supabase.table("auctions").select("*").eq("auction_id", auction_id).execute()
+    if not auction.data:
+        raise HTTPException(404, "Auction not found")
+    
+    auction_data = auction.data[0]
+    if not auction_data.get("is_demo"):
+        raise HTTPException(400, "This is not a demo auction")
+    
+    # Get all items with their comps
+    items = supabase.table("items").select("*").eq("auction_id", auction_id).execute()
+    if not items.data:
+        return {"results": []}
+    
+    # Get images for all items
+    item_ids = [item["item_id"] for item in items.data]
+    images = supabase.table("item_images").select("*").in_("item_id", item_ids).order("position").execute()
+    images_data = images.data if images.data else []
+    
+    # Group images by item_id
+    images_by_item = {}
+    for img in images_data:
+        iid = img["item_id"]
+        if iid not in images_by_item:
+            images_by_item[iid] = []
+        images_by_item[iid].append(img)
+    
+    results = []
+    for item in items.data:
+        item_id = item["item_id"]
+        
+        # Attach images to item
+        item["images"] = images_by_item.get(item_id, [])
+        
+        # Get comps for this item
+        comps = supabase.table("comps").select("*").eq("item_id", item_id).execute()
+        comp_prices = [c["sold_price"] for c in comps.data] if comps.data else []
+        
+        # Calculate average comp price (the "correct" answer)
+        if comp_prices:
+            avg_comp_price = sum(comp_prices) / len(comp_prices)
+        else:
+            avg_comp_price = 0
+        
+        # Get all guesses (bids) for this item
+        guesses = supabase.table("bids").select("*").eq("item_id", item_id).order("created_at").execute()
+        
+        # Find the closest guess to the average comp price
+        winner = None
+        closest_diff = float('inf')
+        
+        guesses_with_diff = []
+        for guess in (guesses.data or []):
+            diff = abs(guess["amount"] - avg_comp_price)
+            guesses_with_diff.append({
+                **guess,
+                "difference": diff
+            })
+            if diff < closest_diff:
+                closest_diff = diff
+                winner = guess
+        
+        # Sort guesses by how close they are
+        guesses_with_diff.sort(key=lambda x: x["difference"])
+        
+        results.append({
+            "item": item,
+            "avg_comp_price": avg_comp_price,
+            "comp_count": len(comp_prices),
+            "guesses": guesses_with_diff,
+            "winner": winner,
+            "winner_difference": closest_diff if winner else None
+        })
+    
+    return {"results": results, "auction": auction_data}
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8081)
+    port = int(os.getenv("PORT", 8081))
+    uvicorn.run(app, host="127.0.0.1", port=port)

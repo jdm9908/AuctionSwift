@@ -424,7 +424,7 @@ function BatchItemSettingsForm({ items, onUpdate }) {
 // ============================================
 // ITEMS TABLE WITH INDIVIDUAL SETTINGS
 // ============================================
-function ItemsTable({ items, onUpdate, auctionStatus }) {
+function ItemsTable({ items, onUpdate, auctionStatus, isDemo = false }) {
   const [editingItem, setEditingItem] = useState(null);
   const [editSettings, setEditSettings] = useState({});
   const [loading, setLoading] = useState(false);
@@ -502,11 +502,15 @@ function ItemsTable({ items, onUpdate, auctionStatus }) {
               <table className="w-full table-fixed">
                 <thead className="bg-orange-100/50">
                   <tr>
-                    <th className="text-left px-4 py-3 text-sm font-medium w-[40%]">Item</th>
-                    <th className="text-right px-4 py-3 text-sm font-medium w-[15%]">Starting Bid</th>
-                    <th className="text-right px-4 py-3 text-sm font-medium w-[15%]">Min Increment</th>
-                    <th className="text-right px-4 py-3 text-sm font-medium w-[15%]">Buy Now</th>
-                    <th className="text-center px-4 py-3 text-sm font-medium w-[15%]">Actions</th>
+                    <th className={`text-left px-4 py-3 text-sm font-medium ${isDemo ? 'w-[70%]' : 'w-[40%]'}`}>Item</th>
+                    {!isDemo && (
+                      <>
+                        <th className="text-right px-4 py-3 text-sm font-medium w-[15%]">Starting Bid</th>
+                        <th className="text-right px-4 py-3 text-sm font-medium w-[15%]">Min Increment</th>
+                        <th className="text-right px-4 py-3 text-sm font-medium w-[15%]">Buy Now</th>
+                      </>
+                    )}
+                    <th className={`text-center px-4 py-3 text-sm font-medium ${isDemo ? 'w-[30%]' : 'w-[15%]'}`}>Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-orange-200">
@@ -524,57 +528,61 @@ function ItemsTable({ items, onUpdate, auctionStatus }) {
                           <div className="min-w-0">
                             <p className="font-medium truncate">{item.title}</p>
                             <p className="text-xs text-muted-foreground truncate">{item.brand} {item.model}</p>
-                            {item.suggested_starting_price && !item.starting_bid && (
+                            {!isDemo && item.suggested_starting_price && !item.starting_bid && (
                               <p className="text-xs text-blue-600">Suggested: ${item.suggested_starting_price.toLocaleString()}</p>
                             )}
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex justify-end">
-                          {editingItem === item.item_id ? (
-                            <Input
-                              type="number"
-                              value={editSettings.starting_bid}
-                              onChange={(e) => setEditSettings({ ...editSettings, starting_bid: e.target.value })}
-                              className="w-24 text-right"
-                              placeholder="0.00"
-                            />
-                          ) : (
-                            <span className="w-24 text-right inline-block">{item.starting_bid ? `$${item.starting_bid.toLocaleString()}` : '-'}</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex justify-end">
-                          {editingItem === item.item_id ? (
-                            <Input
-                              type="number"
-                              value={editSettings.min_increment}
-                              onChange={(e) => setEditSettings({ ...editSettings, min_increment: e.target.value })}
-                              className="w-24 text-right"
-                              placeholder="1.00"
-                            />
-                          ) : (
-                            <span className="w-24 text-right inline-block">{item.min_increment ? `$${item.min_increment.toLocaleString()}` : '-'}</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex justify-end">
-                          {editingItem === item.item_id ? (
-                            <Input
-                              type="number"
-                              value={editSettings.buy_now_price}
-                              onChange={(e) => setEditSettings({ ...editSettings, buy_now_price: e.target.value })}
-                              className="w-24 text-right"
-                              placeholder="0.00"
-                            />
-                          ) : (
-                            <span className="w-24 text-right inline-block">{item.buy_now_price ? `$${item.buy_now_price.toLocaleString()}` : '-'}</span>
-                          )}
-                        </div>
-                      </td>
+                      {!isDemo && (
+                        <>
+                          <td className="px-4 py-3">
+                            <div className="flex justify-end">
+                              {editingItem === item.item_id ? (
+                                <Input
+                                  type="number"
+                                  value={editSettings.starting_bid}
+                                  onChange={(e) => setEditSettings({ ...editSettings, starting_bid: e.target.value })}
+                                  className="w-24 text-right"
+                                  placeholder="0.00"
+                                />
+                              ) : (
+                                <span className="w-24 text-right inline-block">{item.starting_bid ? `$${item.starting_bid.toLocaleString()}` : '-'}</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex justify-end">
+                              {editingItem === item.item_id ? (
+                                <Input
+                                  type="number"
+                                  value={editSettings.min_increment}
+                                  onChange={(e) => setEditSettings({ ...editSettings, min_increment: e.target.value })}
+                                  className="w-24 text-right"
+                                  placeholder="1.00"
+                                />
+                              ) : (
+                                <span className="w-24 text-right inline-block">{item.min_increment ? `$${item.min_increment.toLocaleString()}` : '-'}</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex justify-end">
+                              {editingItem === item.item_id ? (
+                                <Input
+                                  type="number"
+                                  value={editSettings.buy_now_price}
+                                  onChange={(e) => setEditSettings({ ...editSettings, buy_now_price: e.target.value })}
+                                  className="w-24 text-right"
+                                  placeholder="0.00"
+                                />
+                              ) : (
+                                <span className="w-24 text-right inline-block">{item.buy_now_price ? `$${item.buy_now_price.toLocaleString()}` : '-'}</span>
+                              )}
+                            </div>
+                          </td>
+                        </>
+                      )}
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-center gap-2">
                           {editingItem === item.item_id ? (
@@ -597,13 +605,15 @@ function ItemsTable({ items, onUpdate, auctionStatus }) {
                             </>
                           ) : (
                             <>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => startEditing(item)}
-                              >
-                                Edit
-                              </Button>
+                              {!isDemo && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => startEditing(item)}
+                                >
+                                  Edit
+                                </Button>
+                              )}
                               <Button
                                 size="sm"
                                 onClick={() => toggleListing(item.item_id, item.is_listed)}
@@ -639,11 +649,15 @@ function ItemsTable({ items, onUpdate, auctionStatus }) {
             <table className="w-full table-fixed">
               <thead className="bg-muted/50">
                 <tr>
-                  <th className="text-left px-4 py-3 text-sm font-medium w-[40%]">Item</th>
-                  <th className="text-right px-4 py-3 text-sm font-medium w-[15%]">Starting Bid</th>
-                  <th className="text-right px-4 py-3 text-sm font-medium w-[15%]">Min Increment</th>
-                  <th className="text-right px-4 py-3 text-sm font-medium w-[15%]">Buy Now</th>
-                  <th className="text-center px-4 py-3 text-sm font-medium w-[15%]">Actions</th>
+                  <th className={`text-left px-4 py-3 text-sm font-medium ${isDemo ? 'w-[70%]' : 'w-[40%]'}`}>Item</th>
+                  {!isDemo && (
+                    <>
+                      <th className="text-right px-4 py-3 text-sm font-medium w-[15%]">Starting Bid</th>
+                      <th className="text-right px-4 py-3 text-sm font-medium w-[15%]">Min Increment</th>
+                      <th className="text-right px-4 py-3 text-sm font-medium w-[15%]">Buy Now</th>
+                    </>
+                  )}
+                  <th className={`text-center px-4 py-3 text-sm font-medium ${isDemo ? 'w-[30%]' : 'w-[15%]'}`}>Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -664,51 +678,55 @@ function ItemsTable({ items, onUpdate, auctionStatus }) {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end">
-                        {editingItem === item.item_id ? (
-                          <Input
-                            type="number"
-                            value={editSettings.starting_bid}
-                            onChange={(e) => setEditSettings({ ...editSettings, starting_bid: e.target.value })}
-                            className="w-24 text-right"
-                            placeholder="0.00"
-                          />
-                        ) : (
-                          <span className="w-24 text-right inline-block">{item.starting_bid ? `$${item.starting_bid.toLocaleString()}` : '-'}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end">
-                        {editingItem === item.item_id ? (
-                          <Input
-                            type="number"
-                            value={editSettings.min_increment}
-                            onChange={(e) => setEditSettings({ ...editSettings, min_increment: e.target.value })}
-                            className="w-24 text-right"
-                            placeholder="1.00"
-                          />
-                        ) : (
-                          <span className="w-24 text-right inline-block">{item.min_increment ? `$${item.min_increment.toLocaleString()}` : '-'}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end">
-                        {editingItem === item.item_id ? (
-                          <Input
-                            type="number"
-                            value={editSettings.buy_now_price}
-                            onChange={(e) => setEditSettings({ ...editSettings, buy_now_price: e.target.value })}
-                            className="w-24 text-right"
-                            placeholder="0.00"
-                          />
-                        ) : (
-                          <span className="w-24 text-right inline-block">{item.buy_now_price ? `$${item.buy_now_price.toLocaleString()}` : '-'}</span>
-                        )}
-                      </div>
-                    </td>
+                    {!isDemo && (
+                      <>
+                        <td className="px-4 py-3">
+                          <div className="flex justify-end">
+                            {editingItem === item.item_id ? (
+                              <Input
+                                type="number"
+                                value={editSettings.starting_bid}
+                                onChange={(e) => setEditSettings({ ...editSettings, starting_bid: e.target.value })}
+                                className="w-24 text-right"
+                                placeholder="0.00"
+                              />
+                            ) : (
+                              <span className="w-24 text-right inline-block">{item.starting_bid ? `$${item.starting_bid.toLocaleString()}` : '-'}</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex justify-end">
+                            {editingItem === item.item_id ? (
+                              <Input
+                                type="number"
+                                value={editSettings.min_increment}
+                                onChange={(e) => setEditSettings({ ...editSettings, min_increment: e.target.value })}
+                                className="w-24 text-right"
+                                placeholder="1.00"
+                              />
+                            ) : (
+                              <span className="w-24 text-right inline-block">{item.min_increment ? `$${item.min_increment.toLocaleString()}` : '-'}</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex justify-end">
+                            {editingItem === item.item_id ? (
+                              <Input
+                                type="number"
+                                value={editSettings.buy_now_price}
+                                onChange={(e) => setEditSettings({ ...editSettings, buy_now_price: e.target.value })}
+                                className="w-24 text-right"
+                                placeholder="0.00"
+                              />
+                            ) : (
+                              <span className="w-24 text-right inline-block">{item.buy_now_price ? `$${item.buy_now_price.toLocaleString()}` : '-'}</span>
+                            )}
+                          </div>
+                        </td>
+                      </>
+                    )}
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-center gap-2">
                         {editingItem === item.item_id ? (
@@ -731,13 +749,15 @@ function ItemsTable({ items, onUpdate, auctionStatus }) {
                           </>
                         ) : (
                           <>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => startEditing(item)}
-                            >
-                              Edit
-                            </Button>
+                            {!isDemo && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => startEditing(item)}
+                              >
+                                Edit
+                              </Button>
+                            )}
                             <Button
                               size="sm"
                               variant="outline"
@@ -759,7 +779,7 @@ function ItemsTable({ items, onUpdate, auctionStatus }) {
                 ))}
                 {listedItems.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                    <td colSpan={isDemo ? 2 : 5} className="px-4 py-8 text-center text-muted-foreground">
                       No listed items yet. Use the "List Item" button above to make items visible on the public auction.
                     </td>
                   </tr>
@@ -827,11 +847,13 @@ export function SellerAuctionSettings() {
       return;
     }
     
-    // Check if listed items have pricing configured
-    const itemsWithoutPricing = listedItems.filter(item => !item.starting_bid || item.starting_bid <= 0);
-    if (itemsWithoutPricing.length > 0) {
-      setError(`${itemsWithoutPricing.length} listed item(s) don't have pricing set. Please configure the starting bid for all listed items before publishing.`);
-      return;
+    // Check if listed items have pricing configured (skip for demo mode)
+    if (!auction?.is_demo) {
+      const itemsWithoutPricing = listedItems.filter(item => !item.starting_bid || item.starting_bid <= 0);
+      if (itemsWithoutPricing.length > 0) {
+        setError(`${itemsWithoutPricing.length} listed item(s) don't have pricing set. Please configure the starting bid for all listed items before publishing.`);
+        return;
+      }
     }
     
     setActionLoading('publish');
@@ -1002,7 +1024,7 @@ export function SellerAuctionSettings() {
       <BatchItemSettingsForm items={items} onUpdate={fetchData} />
 
       {/* Items Table */}
-      <ItemsTable items={items} onUpdate={fetchData} auctionStatus={auction?.status} />
+      <ItemsTable items={items} onUpdate={fetchData} auctionStatus={auction?.status} isDemo={auction?.is_demo} />
     </div>
   );
 }

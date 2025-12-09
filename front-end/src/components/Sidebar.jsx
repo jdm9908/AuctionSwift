@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Plus, Search, Gavel, ChevronLeft, ChevronRight, CreditCard, Settings, HelpCircle, LogOut } from 'lucide-react';
+import { Plus, Search, Gavel, ChevronLeft, ChevronRight, ChevronDown, CreditCard, Settings, HelpCircle, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { ScrollArea } from './ui/scroll-area';
@@ -34,6 +34,28 @@ export function Sidebar({ onSearchClick, onPlanClick, onSettingsClick, onHelpCli
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({
+    draft: true,
+    live: true,
+    closed: false
+  });
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  // Filter auctions by status
+  const draftAuctions = [...state.auctions]
+    .filter(a => !a.status || a.status === 'draft')
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  
+  const liveAuctions = [...state.auctions]
+    .filter(a => a.status === 'published')
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  
+  const closedAuctions = [...state.auctions]
+    .filter(a => a.status === 'closed')
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   return (
     <aside className={cn(
@@ -121,48 +143,113 @@ export function Sidebar({ onSearchClick, onPlanClick, onSettingsClick, onHelpCli
       {/* Auction List */}
       {!isCollapsed && (
         <div className="flex-1 overflow-hidden flex flex-col">
-          <div className="p-4 pb-2">
-            <h3 className="text-sm font-semibold text-muted-foreground">Recent Auctions</h3>
-          </div>
-          
-          <ScrollArea className="flex-1 px-2">
-            <div className="space-y-1 pb-4">
+          <ScrollArea className="flex-1 px-2 pt-2">
+            <div className="space-y-2 pb-4">
               {state.auctions.length === 0 ? (
                 <div className="px-3 py-2 text-sm text-muted-foreground">
                   No auctions yet
                 </div>
               ) : (
-                [...state.auctions]
-                  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                  .map(auction => (
-                    <Link
-                      key={auction.auction_id}
-                      to={`/auction/${auction.auction_id}`}
-                    >
-                      <div
-                        className={cn(
-                          "px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors cursor-pointer",
-                          location.pathname.startsWith(`/auction/${auction.auction_id}`) && "bg-accent"
-                        )}
+                <>
+                  {/* Draft Section */}
+                  {draftAuctions.length > 0 && (
+                    <div>
+                      <button
+                        onClick={() => toggleSection('draft')}
+                        className="flex items-center justify-between w-full px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors"
                       >
-                        <div className="font-medium truncate flex items-center gap-2">
-                          {auction.auction_name}
-                          {(!auction.status || auction.status === 'draft') && (
-                            <span className="px-1.5 py-0.5 text-[10px] font-medium bg-yellow-100 text-yellow-700 rounded">DRAFT</span>
-                          )}
-                          {auction.status === 'published' && (
-                            <span className="px-1.5 py-0.5 text-[10px] font-medium bg-green-100 text-green-700 rounded">LIVE</span>
-                          )}
-                          {auction.status === 'closed' && (
-                            <span className="px-1.5 py-0.5 text-[10px] font-medium bg-red-100 text-red-700 rounded">CLOSED</span>
-                          )}
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                          Draft ({draftAuctions.length})
+                        </span>
+                        <ChevronDown className={cn("h-3 w-3 transition-transform", !expandedSections.draft && "-rotate-90")} />
+                      </button>
+                      {expandedSections.draft && (
+                        <div className="space-y-1 mt-1">
+                          {draftAuctions.map(auction => (
+                            <Link key={auction.auction_id} to={`/auction/${auction.auction_id}`}>
+                              <div className={cn(
+                                "px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors cursor-pointer",
+                                location.pathname.startsWith(`/auction/${auction.auction_id}`) && "bg-accent"
+                              )}>
+                                <div className="font-medium truncate">{auction.auction_name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {new Date(auction.created_at).toLocaleDateString()}
+                                </div>
+                              </div>
+                            </Link>
+                          ))}
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          {new Date(auction.created_at).toLocaleDateString()}
+                      )}
+                    </div>
+                  )}
+
+                  {/* Live Section */}
+                  {liveAuctions.length > 0 && (
+                    <div>
+                      <button
+                        onClick={() => toggleSection('live')}
+                        className="flex items-center justify-between w-full px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors"
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                          Live ({liveAuctions.length})
+                        </span>
+                        <ChevronDown className={cn("h-3 w-3 transition-transform", !expandedSections.live && "-rotate-90")} />
+                      </button>
+                      {expandedSections.live && (
+                        <div className="space-y-1 mt-1">
+                          {liveAuctions.map(auction => (
+                            <Link key={auction.auction_id} to={`/auction/${auction.auction_id}`}>
+                              <div className={cn(
+                                "px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors cursor-pointer",
+                                location.pathname.startsWith(`/auction/${auction.auction_id}`) && "bg-accent"
+                              )}>
+                                <div className="font-medium truncate">{auction.auction_name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {new Date(auction.created_at).toLocaleDateString()}
+                                </div>
+                              </div>
+                            </Link>
+                          ))}
                         </div>
-                      </div>
-                    </Link>
-                  ))
+                      )}
+                    </div>
+                  )}
+
+                  {/* Closed Section */}
+                  {closedAuctions.length > 0 && (
+                    <div>
+                      <button
+                        onClick={() => toggleSection('closed')}
+                        className="flex items-center justify-between w-full px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors"
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                          Closed ({closedAuctions.length})
+                        </span>
+                        <ChevronDown className={cn("h-3 w-3 transition-transform", !expandedSections.closed && "-rotate-90")} />
+                      </button>
+                      {expandedSections.closed && (
+                        <div className="space-y-1 mt-1">
+                          {closedAuctions.map(auction => (
+                            <Link key={auction.auction_id} to={`/auction/${auction.auction_id}`}>
+                              <div className={cn(
+                                "px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors cursor-pointer opacity-60",
+                                location.pathname.startsWith(`/auction/${auction.auction_id}`) && "bg-accent opacity-100"
+                              )}>
+                                <div className="font-medium truncate">{auction.auction_name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {new Date(auction.created_at).toLocaleDateString()}
+                                </div>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </ScrollArea>

@@ -4,17 +4,25 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { Switch } from '../components/ui/switch';
 import { ActionTypes, useAuction } from '../context/AuctionContext';
 import { useAuth } from '../context/AuthContext';
 import { createAuction } from '../services/api';
 
+// Demo mode only available for this email
+const DEMO_ALLOWED_EMAIL = 'jdmartin21@icloud.com';
+
 export function NewAuctionPage() {
   const [auctionName, setAuctionName] = useState('');
+  const [isDemo, setIsDemo] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { dispatch } = useAuction();
   const { user } = useAuth();
   const navigate = useNavigate();
+  
+  // Check if current user can create demo auctions
+  const canCreateDemo = user?.email?.toLowerCase() === DEMO_ALLOWED_EMAIL.toLowerCase();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,7 +41,7 @@ export function NewAuctionPage() {
 
     try {
       // Use the authenticated user's ID from Supabase Auth
-      const auction = await createAuction(user.id, auctionName.trim());
+      const auction = await createAuction(user.id, auctionName.trim(), canCreateDemo && isDemo);
       
       // Update local state
       dispatch({
@@ -43,6 +51,7 @@ export function NewAuctionPage() {
           auction_name: auction.auction_name,
           profile_id: auction.profile_id,
           status: auction.status || 'draft',
+          is_demo: auction.is_demo || false,
           created_at: auction.created_at
         }
       });
@@ -91,6 +100,25 @@ export function NewAuctionPage() {
                 disabled={loading}
               />
             </div>
+
+            {/* Demo Mode Toggle - Only for authorized email */}
+            {canCreateDemo && (
+              <div className="p-4 border border-dashed border-purple-300 bg-purple-50 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="demo-mode" className="text-purple-700 font-medium">Price Guessing Game (Demo)</Label>
+                    <p className="text-xs text-purple-600 mt-1">
+                      Bidders guess the price instead of bidding. Winner is closest to comp value.
+                    </p>
+                  </div>
+                  <Switch
+                    id="demo-mode"
+                    checked={isDemo}
+                    onCheckedChange={setIsDemo}
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="flex gap-3 pt-4">
               <Button
