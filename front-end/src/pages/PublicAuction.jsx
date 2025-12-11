@@ -4,7 +4,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { Card, CardContent } from '../components/ui/card';
-import { getPublicAuction, placeBid, getAuctionBids, getDemoResults } from '../services/api';
+import { getPublicAuction, placeBid, getAuctionBids } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { 
   AlertCircle,
@@ -13,8 +13,7 @@ import {
   Search,
   RefreshCw,
   User,
-  Trophy,
-  Target
+  Trophy
 } from 'lucide-react';
 
 // Import auction components
@@ -40,21 +39,12 @@ const PublicAuction = () => {
   const [auctionEnded, setAuctionEnded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
-  const [demoResults, setDemoResults] = useState(null); // Demo mode results
 
-  // Handle auction expiry - fetch demo results if needed
+  // Handle auction expiry
   const handleAuctionExpired = useCallback(async () => {
     setAuctionEnded(true);
     setSelectedItem(null); // Go back to grid view
-    if (auction?.is_demo) {
-      try {
-        const demoData = await getDemoResults(auctionId);
-        setDemoResults(demoData);
-      } catch (e) {
-        console.error('Failed to fetch demo results:', e);
-      }
-    }
-  }, [auction?.is_demo, auctionId]);
+  }, []);
 
   // Fetch all bids for all items in the auction
   const fetchAllBids = useCallback(async () => {
@@ -108,15 +98,6 @@ const PublicAuction = () => {
         
         if (isClosed || isExpired) {
           setAuctionEnded(true);
-          // Fetch demo results if it's a demo auction
-          if (auctionData.is_demo) {
-            try {
-              const demoData = await getDemoResults(auctionId);
-              setDemoResults(demoData);
-            } catch (e) {
-              console.error('Failed to fetch demo results:', e);
-            }
-          }
         }
       } catch (err) {
         console.error('Failed to load auction:', err);
@@ -178,13 +159,11 @@ const PublicAuction = () => {
           onBidPlaced={fetchAllBids}
           endDate={auction?.end_time}
           onAuctionExpired={handleAuctionExpired}
-          isDemo={auction?.is_demo}
         />
         <BidderModal
           isOpen={showBidderModal}
           onClose={() => setShowBidderModal(false)}
           onRegister={handleRegisterBidder}
-          isDemo={auction?.is_demo}
         />
       </>
     );
@@ -259,121 +238,6 @@ const PublicAuction = () => {
 
   // Closed auction
   if (auction?.status === 'closed' || auctionEnded) {
-    // Demo auction closed - show price guessing results
-    if (auction?.is_demo && demoResults) {
-      return (
-        <div className="min-h-screen bg-background">
-          {/* Header */}
-          <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur">
-            <div className="max-w-6xl mx-auto px-4 py-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge className="bg-purple-100 text-purple-700 border-purple-200">Demo</Badge>
-                    <Badge className="bg-red-100 text-red-700 border-red-200">Closed</Badge>
-                  </div>
-                  <h1 className="text-2xl font-bold text-foreground">{auction.auction_name || 'Price Guessing Game'}</h1>
-                </div>
-                
-                <div className="flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-lg px-4 py-2">
-                  <Trophy className="w-5 h-5 text-purple-600" />
-                  <span className="text-sm font-medium text-purple-700">Game Over - See Results!</span>
-                </div>
-              </div>
-            </div>
-          </header>
-
-          <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold mb-2">🎉 Final Results 🎉</h2>
-              <p className="text-muted-foreground">Winners are those who guessed closest to the actual value!</p>
-            </div>
-
-            {demoResults.results?.map((result, index) => (
-              <Card key={result.item.item_id} className="overflow-hidden">
-                <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3">
-                  <h3 className="font-bold text-lg">Item #{index + 1}: {result.item.title}</h3>
-                </div>
-                <CardContent className="p-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {/* Item Image */}
-                    <div className="aspect-square bg-muted rounded-lg overflow-hidden">
-                      {result.item.images?.[0]?.url ? (
-                        <img src={result.item.images[0].url} alt={result.item.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package className="w-16 h-16 text-muted-foreground/30" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Results */}
-                    <div className="space-y-4">
-                      {/* Actual Value */}
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                        <Target className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                        <div className="text-sm text-green-600 font-medium">Actual Value (Average of Comps)</div>
-                        <div className="text-3xl font-bold text-green-700">${result.avg_comp_price?.toFixed(2) || '0.00'}</div>
-                        <div className="text-xs text-green-600">Based on {result.comp_count} comparable sale{result.comp_count !== 1 ? 's' : ''}</div>
-                      </div>
-
-                      {/* Top 3 Closest Guesses */}
-                      {result.guesses?.length > 0 && (
-                        <div className="bg-gradient-to-b from-yellow-50 to-orange-50 border border-yellow-300 rounded-lg p-4">
-                          <div className="text-center mb-3">
-                            <Trophy className="w-6 h-6 text-yellow-600 mx-auto mb-1" />
-                            <h4 className="font-bold text-yellow-800">Top 3 Closest Guesses</h4>
-                          </div>
-                          <div className="space-y-2">
-                            {result.guesses.slice(0, 3).map((guess, i) => (
-                              <div 
-                                key={guess.bid_id} 
-                                className={`flex justify-between items-center px-4 py-3 rounded-lg ${
-                                  i === 0 
-                                    ? 'bg-yellow-200 border-2 border-yellow-400 shadow-sm' 
-                                    : i === 1 
-                                      ? 'bg-gray-100 border border-gray-300' 
-                                      : 'bg-amber-100 border border-amber-300'
-                                }`}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <span className={`text-2xl ${i === 0 ? '' : 'opacity-70'}`}>
-                                    {i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}
-                                  </span>
-                                  <div>
-                                    <div className={`font-bold ${i === 0 ? 'text-yellow-800' : 'text-gray-700'}`}>
-                                      {guess.bidder_name || 'Anonymous'}
-                                    </div>
-                                    <div className={`text-sm ${i === 0 ? 'text-yellow-700' : 'text-gray-600'}`}>
-                                      Guessed: ${guess.amount?.toFixed(2)}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className={`text-right ${i === 0 ? 'text-yellow-800' : 'text-gray-600'}`}>
-                                  <div className="text-xs">Off by</div>
-                                  <div className="font-bold">${guess.difference?.toFixed(2)}</div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {result.guesses?.length === 0 && (
-                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-                          <div className="text-muted-foreground">No guesses submitted for this item</div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
     // Regular closed auction
     return (
       <div className="min-h-screen bg-background">
@@ -430,8 +294,6 @@ const PublicAuction = () => {
   }
 
   // Live Auction
-  const isDemo = auction?.is_demo;
-  
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -440,17 +302,10 @@ const PublicAuction = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                {isDemo ? (
-                  <Badge className="bg-purple-100 text-purple-700 border-purple-200">🎯 Price Guessing Game</Badge>
-                ) : (
-                  <Badge className="bg-green-100 text-green-700 border-green-200">Live</Badge>
-                )}
+                <Badge className="bg-green-100 text-green-700 border-green-200">Live</Badge>
                 {auctionEnded && <Badge variant="destructive">Ended</Badge>}
               </div>
               <h1 className="text-2xl font-bold text-foreground">{auction.auction_name || 'Untitled Auction'}</h1>
-              {isDemo && (
-                <p className="text-sm text-purple-600 mt-1">Guess the price! Closest to the actual value wins!</p>
-              )}
             </div>
             
             {/* Countdown Timer - always show */}
@@ -539,7 +394,6 @@ const PublicAuction = () => {
         isOpen={showBidderModal}
         onClose={() => setShowBidderModal(false)}
         onRegister={handleRegisterBidder}
-        isDemo={auction?.is_demo}
       />
     </div>
   );

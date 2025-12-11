@@ -30,8 +30,7 @@ const ItemDetailView = ({
   itemBids = [],
   onBidPlaced,
   endDate,
-  onAuctionExpired,
-  isDemo = false
+  onAuctionExpired
 }) => {
   const [bidAmount, setBidAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,11 +42,11 @@ const ItemDetailView = ({
   const currentPrice = highestBid ? highestBid.amount : (item.starting_bid || 0);
   const minBid = highestBid ? currentPrice + (item.min_increment || 1) : (item.starting_bid || 1);
 
-  // Check if current bidder is winning (not applicable for demo)
-  const isWinning = !isDemo && highestBid && currentBidder && highestBid.bidder_email === currentBidder.email;
+  // Check if current bidder is winning
+  const isWinning = highestBid && currentBidder && highestBid.bidder_email === currentBidder.email;
 
-  // Buy Now price check (not applicable for demo)
-  const hasBuyNow = !isDemo && item.buy_now_price && item.buy_now_price > 0;
+  // Buy Now price check
+  const hasBuyNow = item.buy_now_price && item.buy_now_price > 0;
 
   const handleBidSubmit = async (e) => {
     e.preventDefault();
@@ -59,21 +58,9 @@ const ItemDetailView = ({
 
     const amount = parseFloat(bidAmount);
     
-    // For demo, just check it's a positive number under $100,000
-    if (isDemo) {
-      if (isNaN(amount) || amount <= 0) {
-        setBidError('Please enter a valid price guess');
-        return;
-      }
-      if (amount > 100000) {
-        setBidError('Guess must be under $100,000');
-        return;
-      }
-    } else {
-      if (isNaN(amount) || amount < minBid) {
-        setBidError(`Minimum bid is $${minBid.toFixed(2)}`);
-        return;
-      }
+    if (isNaN(amount) || amount < minBid) {
+      setBidError(`Minimum bid is $${minBid.toFixed(2)}`);
+      return;
     }
 
     setIsSubmitting(true);
@@ -86,7 +73,7 @@ const ItemDetailView = ({
       if (onBidPlaced) onBidPlaced();
       setTimeout(() => setBidSuccess(false), 3000);
     } catch (error) {
-      setBidError(error.message || (isDemo ? 'Failed to submit guess' : 'Failed to place bid'));
+      setBidError(error.message || 'Failed to place bid');
     } finally {
       setIsSubmitting(false);
     }
@@ -248,40 +235,30 @@ const ItemDetailView = ({
             </div>
 
             {/* Price Card */}
-            <Card className={isDemo ? 'border-purple-300 bg-purple-50/30' : ''}>
+            <Card>
               <CardContent className="p-4 space-y-4">
-                {isDemo ? (
-                  /* Demo Mode - Price Guessing */
-                  <div className="text-center py-2">
-                    <div className="text-sm text-purple-600 font-medium mb-1">🎯 Guess the Price!</div>
-                    <div className="text-muted-foreground text-sm">
-                      {itemBids.length} guess{itemBids.length !== 1 ? 'es' : ''} submitted
+                {/* Show Current Bid */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm text-muted-foreground">
+                      {highestBid ? 'Current Bid' : 'Opening Bid'}
+                    </div>
+                    <div className="text-3xl font-bold text-green-600 flex items-center">
+                      <DollarSign className="w-6 h-6" />
+                      {currentPrice.toFixed(2)}
                     </div>
                   </div>
-                ) : (
-                  /* Regular Auction - Show Current Bid */
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm text-muted-foreground">
-                        {highestBid ? 'Current Bid' : 'Opening Bid'}
-                      </div>
-                      <div className="text-3xl font-bold text-green-600 flex items-center">
-                        <DollarSign className="w-6 h-6" />
-                        {currentPrice.toFixed(2)}
-                      </div>
+                  <div className="text-right">
+                    <div className="text-sm text-muted-foreground">
+                      {itemBids.length} bid{itemBids.length !== 1 ? 's' : ''}
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm text-muted-foreground">
-                        {itemBids.length} bid{itemBids.length !== 1 ? 's' : ''}
+                    {highestBid && (
+                      <div className="text-sm font-medium text-foreground">
+                        Next Bid: ${minBid.toFixed(2)}
                       </div>
-                      {highestBid && (
-                        <div className="text-sm font-medium text-foreground">
-                          Next Bid: ${minBid.toFixed(2)}
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
-                )}
+                </div>
 
                 {/* Bidding UI */}
                 <div className="space-y-3 pt-2 border-t">
@@ -294,110 +271,76 @@ const ItemDetailView = ({
                   {bidSuccess && (
                     <div className="flex items-center gap-2 text-green-600 text-sm bg-green-50 p-3 rounded-lg">
                       <CheckCircle className="w-4 h-4 flex-shrink-0" />
-                      {isDemo ? 'Guess submitted!' : 'Bid placed successfully!'}
+                      Bid placed successfully!
                     </div>
                   )}
 
                   {auctionEnded && (
                     <div className="text-center py-4 text-muted-foreground bg-muted rounded-lg">
                       <AlertCircle className="w-6 h-6 mx-auto mb-2" />
-                      <p className="font-medium">{isDemo ? 'Game has ended' : 'Auction has ended'}</p>
+                      <p className="font-medium">Auction has ended</p>
                     </div>
                   )}
 
                   {!auctionEnded && !currentBidder && (
                     <Button onClick={onNeedRegistration} className="w-full" size="lg">
                       <User className="w-4 h-4 mr-2" />
-                      {isDemo ? 'Register to Guess' : 'Register to Bid'}
+                      Register to Bid
                     </Button>
                   )}
 
                   {!auctionEnded && currentBidder && (
                     <>
-                      {/* Demo Mode - Just show input form */}
-                      {isDemo ? (
-                        <form onSubmit={handleBidSubmit} className="space-y-3">
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">$</span>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              min="0.01"
-                              value={bidAmount}
-                              onChange={(e) => setBidAmount(e.target.value)}
-                              placeholder="Enter your price guess"
-                              className="pl-7 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            />
-                          </div>
-                          <Button 
-                            type="submit"
-                            disabled={isSubmitting || !bidAmount}
-                            className="w-full bg-purple-600 hover:bg-purple-700"
-                            size="lg"
-                          >
-                            {isSubmitting ? (
-                              <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-                            ) : (
-                              <Gavel className="w-4 h-4 mr-2" />
-                            )}
-                            Submit Guess
-                          </Button>
-                        </form>
-                      ) : (
-                        /* Regular Auction Bidding */
-                        <>
-                          {/* Quick Bid */}
-                          <Button 
-                            onClick={handleQuickBid}
-                            disabled={isSubmitting}
-                            className="w-full"
-                            size="lg"
-                          >
-                            {isSubmitting ? (
-                              <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-                            ) : (
-                              <Gavel className="w-4 h-4 mr-2" />
-                            )}
-                            {highestBid ? `Quick Bid $${minBid.toFixed(2)}` : `Place Opening Bid $${minBid.toFixed(2)}`}
-                          </Button>
+                      {/* Quick Bid */}
+                      <Button 
+                        onClick={handleQuickBid}
+                        disabled={isSubmitting}
+                        className="w-full"
+                        size="lg"
+                      >
+                        {isSubmitting ? (
+                          <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                        ) : (
+                          <Gavel className="w-4 h-4 mr-2" />
+                        )}
+                        {highestBid ? `Quick Bid $${minBid.toFixed(2)}` : `Place Opening Bid $${minBid.toFixed(2)}`}
+                      </Button>
 
-                          {/* Custom Bid */}
-                          <form onSubmit={handleBidSubmit} className="flex gap-2">
-                            <div className="relative flex-1">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">$</span>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min={minBid}
-                                value={bidAmount}
-                                onChange={(e) => setBidAmount(e.target.value)}
-                                placeholder={minBid.toFixed(2)}
-                                className="pl-7 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                              />
-                            </div>
-                            <Button 
-                              type="submit"
-                              variant="outline"
-                              disabled={isSubmitting || !bidAmount}
-                            >
-                              Bid
-                            </Button>
-                          </form>
+                      {/* Custom Bid */}
+                      <form onSubmit={handleBidSubmit} className="flex gap-2">
+                        <div className="relative flex-1">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">$</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min={minBid}
+                            value={bidAmount}
+                            onChange={(e) => setBidAmount(e.target.value)}
+                            placeholder={minBid.toFixed(2)}
+                            className="pl-7 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                        </div>
+                        <Button 
+                          type="submit"
+                          variant="outline"
+                          disabled={isSubmitting || !bidAmount}
+                        >
+                          Bid
+                        </Button>
+                      </form>
 
-                          {/* Buy Now */}
-                          {hasBuyNow && (
-                            <Button 
-                              onClick={handleBuyNow}
-                              disabled={isSubmitting}
-                              variant="outline"
-                              className="w-full border-blue-500 text-blue-600 hover:bg-blue-50"
-                              size="lg"
-                            >
-                              <ShoppingCart className="w-4 h-4 mr-2" />
-                              Buy Now ${item.buy_now_price.toFixed(2)}
-                            </Button>
-                          )}
-                        </>
+                      {/* Buy Now */}
+                      {hasBuyNow && (
+                        <Button 
+                          onClick={handleBuyNow}
+                          disabled={isSubmitting}
+                          variant="outline"
+                          className="w-full border-blue-500 text-blue-600 hover:bg-blue-50"
+                          size="lg"
+                        >
+                          <ShoppingCart className="w-4 h-4 mr-2" />
+                          Buy Now ${item.buy_now_price.toFixed(2)}
+                        </Button>
                       )}
                     </>
                   )}

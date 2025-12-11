@@ -25,7 +25,7 @@ const formatDateAmerican = (dateString) => {
   }
 };
 
-export function ItemCard({ item, isDemo = false }) {
+export function ItemCard({ item }) {
   const { state, dispatch } = useAuction();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -194,7 +194,7 @@ export function ItemCard({ item, isDemo = false }) {
               </div>
             )}
 
-            {!isDemo && itemComps.length > 0 && (
+            {itemComps.length > 0 && (
               <>
                 <Separator className="my-3" />
                 <div>
@@ -225,7 +225,7 @@ export function ItemCard({ item, isDemo = false }) {
               </>
             )}
 
-            {!isDemo && itemComps.length === 0 && (
+            {itemComps.length === 0 && (
               <>
                 <Separator className="my-3" />
                 <div className="text-sm text-muted-foreground italic">
