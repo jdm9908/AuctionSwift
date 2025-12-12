@@ -19,7 +19,6 @@ export function LoginPage() {
         password,
       });
       if (error) throw error;
-      console.log("Logged in user:", data.user);
       navigate("/new");
     } catch (err) {
       console.error("Login failed:", err);

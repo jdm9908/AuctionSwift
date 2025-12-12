@@ -1,6 +1,6 @@
 // Main layout component - includes sidebar and modal controls
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { SearchModal } from './SearchModal';
 import { PlanModal } from './PlanModal';
@@ -8,6 +8,7 @@ import { SettingsModal } from './SettingsModal';
 import { HelpModal } from './HelpModal';
 
 export function Layout() {
+  const navigate = useNavigate();
   // Track which modals are open
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isPlanOpen, setIsPlanOpen] = useState(false);
@@ -22,6 +23,7 @@ export function Layout() {
         onPlanClick={() => setIsPlanOpen(true)}
         onSettingsClick={() => setIsSettingsOpen(true)}
         onHelpClick={() => setIsHelpOpen(true)}
+        onDocsClick={() => navigate('/docs')}
       />
       
       {/* Main content area - pages render here */}

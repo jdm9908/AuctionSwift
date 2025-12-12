@@ -1,79 +1,8 @@
 # EstateBid
 
-A full-stack auction management application for cataloging, pricing, and managing auction items using AI-powered descriptions and comparable sales analysis.
+A full-stack estate auction management application with AI-powered item descriptions and comparable sales analysis.
 
-## Tech Stack
-
-### Frontend
-- **React** with Vite
-- **TailwindCSS** + shadcn/ui components
-- **React Router** for navigation
-- **Supabase** for authentication and storage
-
-### Backend
-- **FastAPI** (Python)
-- **Supabase** PostgreSQL database
-- **OpenAI GPT-4o** for item descriptions
-- **OpenAI Agents SDK** for comparable sales generation
-- **Batch API** for cost-effective multi-item processing
-
-### Database
-- **PostgreSQL** via Supabase
-- Row Level Security (RLS) enabled
-- Multi-tenant architecture with organizations
-![alt text](<Screenshot 2025-11-17 at 11.43.11 PM.png>)
----
-
-## Features
-
-- **Auction Management**: Create and manage multiple auctions
-- **Item Cataloging**: Add items with images, brand, model, year
-- **AI-Powered Descriptions**: Automatically generate item descriptions using GPT-4o
-- **Comparable Sales (Comps)**: AI agent finds similar sold items from eBay, Reverb, etc.
-- **Batch Processing**: Process 2+ items with 50% cost savings via OpenAI Batch API
-- **Image Management**: Upload up to 5 images per item to Supabase Storage
-- **Multi-tenant**: Organization-based access control with RLS
-
----
-
-## Project Structure
-
-```
-EstateBid/
-├── .env                     # Environment variables (root level)
-├── .env.example             # Template for environment variables
-├── requirements.txt         # Python dependencies (root level)
-├── venv/                    # Python virtual environment (git-ignored)
-├── backend/
-│   └── main.py              # FastAPI server with all endpoints
-└── front-end/
-    ├── src/
-    │   ├── components/      # React components
-    │   │   ├── ui/          # shadcn/ui components
-    │   │   ├── Layout.jsx   # Main layout with sidebar
-    │   │   ├── Sidebar.jsx  # Navigation sidebar
-    │   │   ├── ItemCard.jsx # Item display card
-    │   │   ├── ItemMultiForm.jsx  # Multi-item creation form
-    │   │   └── ImageUploadZone.jsx # Image upload handler
-    │   ├── context/         # Global state management
-    │   │   ├── AuctionContext.jsx  # Auction state
-    │   │   └── AuthContext.jsx     # Auth state
-    │   ├── pages/           # Route pages
-    │   │   ├── HomePage.jsx         # Landing page
-    │   │   ├── LoginPage.jsx        # Login
-    │   │   ├── SignUpPage.jsx       # Sign up
-    │   │   ├── DashboardPage.jsx    # User dashboard
-    │   │   ├── NewAuctionPage.jsx   # Create auction
-    │   │   └── AuctionDetailPage.jsx # Auction details
-    │   ├── lib/             # API client & utilities
-    │   │   └── supabaseClient.js # Supabase config
-    │   └── App.jsx          # Main app component with routing
-    └── package.json         # Frontend dependencies
-```
-
----
-
-## Setup Instructions
+## Quick Start
 
 ### Prerequisites
 - **Node.js** 18+ and npm
@@ -81,353 +10,191 @@ EstateBid/
 - **Supabase** project (free tier works)
 - **OpenAI** API key
 
-### 1. Clone Repository
-```bash
-git clone https://github.com/georgiatttt/EstateBid.git
-cd EstateBid
-```
-
-### 2. Database Setup
-
-1. Create a Supabase project at [supabase.com](https://supabase.com)
-2. Set up your database schema through the Supabase Dashboard
-3. Configure Row Level Security (RLS) policies for multi-tenant access
-4. Create the required tables: `profiles`, `organizations`, `auctions`, `items`, `item_images`, `comps`
-
-### 3. Backend Setup
+### 1. Clone & Install
 
 ```bash
-# From root directory
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: .\venv\Scripts\Activate.ps1
+# Clone the repository
+git clone https://github.com/jdm9908/AuctionSwift.git
+cd AuctionSwift
 
-# Install dependencies
+# Backend setup
+python -m venv .venv
+# Windows:
+.\.venv\Scripts\Activate.ps1
+# Mac/Linux:
+source .venv/bin/activate
+
 pip install -r requirements.txt
-pip install openai-agents
+
+# Frontend setup
+cd front-end
+npm install
+cd ..
 ```
 
-**Environment Variables (.env in root)**:
+### 2. Configure Environment Variables
+
+**Backend (.env in root directory):**
+```bash
+cp .env.example .env
+```
+Edit `.env`:
 ```env
 SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your_service_role_key
-OPENAI_DESCRIPTION_KEY=your_openai_api_key_for_descriptions
-OPENAI_COMPS_KEY=your_openai_api_key_for_comps
+SUPABASE_KEY=your_supabase_service_role_key
+OPENAI_DESCRIPTION_KEY=your_openai_api_key
+OPENAI_COMPS_KEY=your_openai_api_key
+ALLOWED_ORIGINS=http://localhost:5173
 ```
 
-### 4. Frontend Setup
-
+**Frontend (front-end/.env):**
 ```bash
 cd front-end
-
-# Install dependencies
-npm install
-
-# Frontend uses Supabase client directly
-# Update src/lib/supabaseClient.js if needed
+cp .env.example .env
+```
+Edit `front-end/.env`:
+```env
+VITE_API_URL=http://localhost:8081
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PUBLIC=your_supabase_anon_key
 ```
 
-The frontend connects to Supabase using the anon key configured in `src/lib/supabaseClient.js`.
+### 3. Start the Application
 
-### 5. Run the Application
-
-**Start Backend** (port 8081):
+**Terminal 1 - Backend:**
 ```bash
 cd backend
-python main.py
+python -m uvicorn main:app --reload --port 8081
 ```
 
-**Start Frontend** (port 5173):
+**Terminal 2 - Frontend:**
 ```bash
 cd front-end
 npm run dev
 ```
 
-Access the app at `http://localhost:5173`
+Open http://localhost:5173 in your browser.
 
 ---
 
-## API Documentation
+## Features
 
-Base URL: `http://localhost:8081`
-
-### Profile Endpoints
-
-#### Get All Profiles
-```http
-GET /api/profiles
-```
-Returns all user profiles with organization info.
-
-#### Create Profile
-```http
-POST /api/profiles
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "org_id": "uuid",
-  "role": "admin"
-}
-```
-
-### Auction Endpoints
-
-#### Get User's Auctions
-```http
-GET /api/auctions/{profile_id}
-```
-
-#### Create Auction
-```http
-POST /api/auctions
-Content-Type: application/json
-
-{
-  "profile_id": "uuid",
-  "auction_name": "Estate Sale 2024",
-  "auction_date": "2024-12-15",
-  "location": "Portland, OR"
-}
-```
-
-#### Delete Auction
-```http
-DELETE /api/auctions/{auction_id}
-```
-Cascades: deletes all items, images, and comps associated with auction.
-
-### Item Endpoints
-
-#### Get User's Items
-```http
-GET /api/items/{profile_id}
-```
-Returns items with images array included.
-
-#### Create Item
-```http
-POST /api/items
-Content-Type: application/json
-
-{
-  "auction_id": "uuid",
-  "title": "Fender Stratocaster",
-  "brand": "Fender",
-  "model": "Stratocaster",
-  "year": 1965,
-  "ai_description": "Vintage guitar in excellent condition",
-  "imageUrl1": "https://..."
-}
-```
-Creates item with initial placeholder image.
-
-#### Update Item
-```http
-PUT /api/items/{item_id}
-Content-Type: application/json
-
-{
-  "title": "Updated Title",
-  "brand": "Updated Brand",
-  ...
-}
-```
-
-#### Delete Item
-```http
-DELETE /api/items/{item_id}
-```
-Cascades: deletes all images and comps for this item.
-
-### Image Endpoints
-
-#### Upload Item Image
-```http
-POST /api/items/{item_id}/images
-Content-Type: multipart/form-data
-
-file: <image file>
-position: 1
-```
-Uploads to Supabase Storage, returns public URL.
-
-#### Update Image URL
-```http
-PUT /api/items/{item_id}/images/{image_id}
-Content-Type: application/json
-
-{
-  "url": "https://supabase.co/storage/..."
-}
-```
-
-#### Get Item Images
-```http
-GET /api/items/{item_id}/images
-```
-
-### AI Description Endpoint
-
-#### Generate Item Description
-```http
-POST /api/items/generate-description
-Content-Type: multipart/form-data
-
-image: <image file>
-title: "Fender Stratocaster"
-model: "Stratocaster"
-year: "1965"
-notes: "Vintage, excellent condition"
-```
-Uses **GPT-4o vision** to analyze image and generate professional description.
-
-### Comparable Sales (Comps) Endpoints
-
-#### Get Item Comps
-```http
-GET /api/comps/item/{item_id}
-```
-
-#### Generate Comps (Single Item)
-```http
-POST /api/comps/generate
-Content-Type: application/json
-
-{
-  "item_id": "uuid",
-  "brand": "Fender",
-  "model": "Stratocaster", 
-  "year": "1965",
-  "notes": ""
-}
-```
-Uses **OpenAI Agents SDK** to search for 3 comparable sales. Returns immediately with results.
-
-#### Generate Comps (Batch)
-```http
-POST /api/comps/batch
-Content-Type: application/json
-
-{
-  "items": [
-    {
-      "item_id": "uuid",
-      "brand": "Fender",
-      "model": "Stratocaster",
-      "year": "1965",
-      "notes": ""
-    },
-    ...
-  ]
-}
-```
-**Batch API for 2+ items** - 50% cheaper than individual requests. Returns all results in one response (no polling needed).
-
-Response includes:
-- `batch_id`: OpenAI batch identifier
-- `status`: "completed" or "failed"
-- `results`: Array of comp results per item
-- `successful`: Count of successful items
-- `total_items`: Total items processed
-
-#### Delete Comp
-```http
-DELETE /api/comps/{comp_id}
-```
-
-### User Data Endpoint
-
-#### Get All User Data
-```http
-GET /api/user/{profile_id}/all
-```
-Returns complete dataset for a user:
-- All auctions
-- All items (with images)
-- All comps
-
-Used for initial app load to hydrate state.
+- **Estate Auction Management** - Create and manage multi-item estate sales
+- **AI-Powered Descriptions** - GPT-4o generates professional item descriptions from photos
+- **Comparable Sales** - AI agent finds similar sold items from eBay, Reverb, etc.
+- **Public Auction Pages** - Share auction links with bidders
+- **Real-time Bidding** - Live bid updates and countdown timers
+- **Image Management** - Upload up to 5 images per item
+- **Batch Processing** - 50% cost savings on multi-item AI processing
 
 ---
 
-## Database Schema
-
-### Core Tables
-
-**auctions** - Auction events
-- `auction_id` (uuid, PK)
-- `profile_id` (uuid, FK → profiles)
-- `auction_name`, `auction_date`, `location`
-
-**items** - Auction items
-- `item_id` (uuid, PK)
-- `auction_id` (uuid, FK → auctions)
-- `title`, `brand`, `model`, `year`
-- `ai_description`, `status`
-
-**item_images** - Item photos (up to 5)
-- `image_id` (bigserial, PK)
-- `item_id` (uuid, FK → items)
-- `url`, `position`
-
-**comps** - Comparable sales
-- `comp_id` (bigserial, PK)
-- `item_id` (uuid, FK → items)
-- `source`, `source_url`, `sold_price`, `sold_at`
-
-**profiles** - User profiles
-- `profile_id` (uuid, PK)
-- `org_id` (uuid, FK → organizations)
-- `email`, `role`
-
-**organizations** - Multi-tenant organizations
-- `org_id` (uuid, PK)
-- `name`
-
-See `docs/er-diagram.png` for visual schema.
-
----
-
-## Environment Variables Reference
-
-### Root .env File
-```env
-# Supabase
-SUPABASE_URL=https://xxxxx.supabase.co
-SUPABASE_KEY=eyJxxxx...  # Service role key for backend
-
-# OpenAI
-OPENAI_DESCRIPTION_KEY=sk-proj-xxxxx  # For GPT-4o descriptions
-OPENAI_COMPS_KEY=sk-proj-xxxxx        # For Agents SDK comps
-```
+## Tech Stack
 
 ### Frontend
-Configured in `front-end/src/lib/supabaseClient.js`:
-- Uses `SUPABASE_URL` and `SUPABASE_ANON_KEY`
-- No separate .env needed (hardcoded in client)
+- React 19 + Vite
+- TailwindCSS + shadcn/ui
+- Framer Motion animations
+- Supabase Auth
+
+### Backend
+- FastAPI (Python)
+- Supabase PostgreSQL
+- OpenAI GPT-4o + Agents SDK
 
 ---
 
-## Development Notes
+## Project Structure
 
-- **CORS**: Backend allows all origins (`*`) for development
-- **RLS**: Database uses Row Level Security - users can only access their org's data
-- **Image Storage**: All images stored in Supabase Storage bucket `item-images`
-- **AI Costs**: Batch API saves 50% on multi-item comp generation
-- **Port Conflicts**: Backend uses 8081 (not 8000) to avoid conflicts
+```
+EstateBid/
+├── .env.example             # Backend env template
+├── requirements.txt         # Python dependencies
+├── backend/
+│   └── main.py              # FastAPI server
+└── front-end/
+    ├── .env.example         # Frontend env template
+    ├── package.json
+    └── src/
+        ├── components/      # React components
+        │   ├── auction/     # Public auction components
+        │   └── ui/          # shadcn/ui components
+        ├── context/         # Auth & Auction state
+        ├── pages/           # Route pages
+        ├── services/        # API & storage services
+        └── lib/             # Supabase client
+```
 
 ---
 
-## Assignment Context
+## Security Notes
 
-This project was built as a full-stack application demonstrating:
-- RESTful API design with FastAPI
-- React frontend with modern hooks and context
-- PostgreSQL database design with proper foreign keys
-- AI integration (OpenAI GPT-4o + Agents SDK)
-- Cloud storage and authentication (Supabase)
-- Multi-tenant security with RLS
+- ✅ All secrets stored in `.env` files (git-ignored)
+- ✅ CORS configured via environment variable
+- ✅ Supabase RLS for database security
+- ✅ Input validation on all API endpoints
+- ✅ No hardcoded credentials in codebase
+
+---
+
+## API Endpoints
+
+### Auctions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/auctions` | Create auction |
+| GET | `/auctions` | List user's auctions |
+| GET | `/auctions/{id}` | Get auction details |
+| PUT | `/auctions/{id}` | Update auction name |
+| DELETE | `/auctions/{id}` | Delete auction |
+| PUT | `/auctions/{id}/settings` | Update auction settings |
+| POST | `/auctions/{id}/publish` | Publish auction |
+| POST | `/auctions/{id}/close` | Close auction |
+| GET | `/auctions/{id}/public` | Public auction page |
+| GET | `/auctions/{id}/all-bids` | Get all bids (seller) |
+| GET | `/auctions/{id}/excel` | Export to Excel |
+| GET | `/auctions/public` | List public auctions |
+
+### Items
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/items` | Create item |
+| GET | `/items` | List items |
+| GET | `/items/{id}` | Get item |
+| PUT | `/items/{id}` | Update item |
+| DELETE | `/items/{id}` | Delete item |
+| PUT | `/items/{id}/auction-settings` | Update item bid settings |
+| PUT | `/items/batch/auction-settings` | Batch update settings |
+| POST | `/items/{id}/bid` | Place bid |
+| POST | `/items/{id}/buy-now` | Buy now |
+| GET | `/items/{id}/bids` | Get item bids |
+
+### Images
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/items/{id}/images` | Add images |
+| PUT | `/items/{id}/images/{img_id}` | Update image URL |
+| PUT | `/items/{id}/images/{img_id}/primary` | Set primary image |
+
+### AI & Comps
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/simple-generate-description` | Quick AI description |
+| POST | `/items/generate-description` | Vision AI description |
+| POST | `/comps` | Generate comparable sales |
+| GET | `/comps/{item_id}` | Get saved comps |
+| GET | `/items/{id}/comps/saved` | Get item's saved comps |
+| POST | `/comps/batch` | Batch generate comps |
+
+### Users & Orders
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/users` | Create user |
+| GET | `/users/{id}` | Get user |
+| PUT | `/users/{id}/email` | Update email |
+| POST | `/payments` | Activate account |
+| GET | `/orders/{id}` | Get order |
+| GET | `/orders` | List orders |
 
 ---
 

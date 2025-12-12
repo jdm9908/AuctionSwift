@@ -82,8 +82,6 @@ const PublicAuction = () => {
       try {
         setLoading(true);
         const data = await getPublicAuction(auctionId);
-        console.log('Auction data loaded:', data);
-        console.log('End time:', data.auction?.end_time || data.end_time);
         
         // API returns { auction: {...}, items: [...] }
         const auctionData = data.auction || data;
@@ -140,7 +138,7 @@ const PublicAuction = () => {
   const filteredItems = items.filter(item => {
     if (!searchQuery) return true;
     return item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      item.ai_description?.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   // If an item is selected, show detail view

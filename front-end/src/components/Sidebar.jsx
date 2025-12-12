@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Plus, Search, Gavel, ChevronLeft, ChevronRight, ChevronDown, CreditCard, Settings, HelpCircle, LogOut } from 'lucide-react';
+import { Plus, Search, Gavel, ChevronLeft, ChevronRight, ChevronDown, CreditCard, Settings, HelpCircle, LogOut, Book } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { ScrollArea } from './ui/scroll-area';
@@ -12,7 +12,7 @@ import { useAuth } from "../context/AuthContext";
 
 
 
-export function Sidebar({ onSearchClick, onPlanClick, onSettingsClick, onHelpClick }) {
+export function Sidebar({ onSearchClick, onPlanClick, onSettingsClick, onHelpClick, onDocsClick }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const handleLogout = async () => {
@@ -311,6 +311,16 @@ export function Sidebar({ onSearchClick, onPlanClick, onSettingsClick, onHelpCli
                 >
                   <Settings className="h-4 w-4" />
                   <span>Settings</span>
+                </button>
+                <button
+                  className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-accent transition-colors text-sm"
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    onDocsClick();
+                  }}
+                >
+                  <Book className="h-4 w-4" />
+                  <span>Documentation</span>
                 </button>
                 <button
                   className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-accent transition-colors text-sm"

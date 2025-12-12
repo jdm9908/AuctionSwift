@@ -1,9 +1,8 @@
-// import react hooks
+// AuctionContext - Global state management for auctions, items, and images
 import { createContext, useContext, useReducer, useEffect } from 'react';
 import { fetchAllUserData } from '../services/api';
 import { useAuth } from './AuthContext';
 
-// initial state
 const initialState = {
   auctions: [],
   items: [],
@@ -13,7 +12,6 @@ const initialState = {
   error: null
 };
 
-// action types
 export const ActionTypes = {
   CREATE_AUCTION: 'CREATE_AUCTION',
   UPDATE_AUCTION: 'UPDATE_AUCTION',
@@ -23,18 +21,15 @@ export const ActionTypes = {
   DELETE_ITEM: 'DELETE_ITEM',
   ADD_ITEM_IMAGE: 'ADD_ITEM_IMAGE',
   DELETE_ITEM_IMAGE: 'DELETE_ITEM_IMAGE',
-  SET_ITEM_IMAGES: 'SET_ITEM_IMAGES',         // Replace all images for an item
-  ADD_COMP: 'ADD_COMP',                       // Add a comparable sale
-  LOAD_ALL_DATA: 'LOAD_ALL_DATA',             // Load all data from API
-  SET_LOADING: 'SET_LOADING',                 // Set loading state
-  SET_ERROR: 'SET_ERROR'                      // Set error state
+  SET_ITEM_IMAGES: 'SET_ITEM_IMAGES',
+  ADD_COMP: 'ADD_COMP',
+  LOAD_ALL_DATA: 'LOAD_ALL_DATA',
+  SET_LOADING: 'SET_LOADING',
+  SET_ERROR: 'SET_ERROR'
 };
 
-// ---- REDUCER ---- //
-// This function handles all changes to our data
 function auctionReducer(state, action) {
   switch (action.type) {
-    // CREATE NEW AUCTION
     case ActionTypes.CREATE_AUCTION:
       return {
         ...state,
@@ -50,7 +45,6 @@ function auctionReducer(state, action) {
         ]
       };
 
-    // UPDATE EXISTING AUCTION (e.g., status change)
     case ActionTypes.UPDATE_AUCTION:
       return {
         ...state,
@@ -61,7 +55,6 @@ function auctionReducer(state, action) {
         )
       };
 
-    // DELETE AUCTION (and cascade delete all related data)
     case ActionTypes.DELETE_AUCTION:
       const auctionIdToDelete = action.payload.auction_id;
       return {
@@ -78,7 +71,7 @@ function auctionReducer(state, action) {
         })
       };
 
-    // ADD NEW ITEM TO AUCTION
+
     case ActionTypes.ADD_ITEM:
       const newItem = {
         item_id: action.payload.item_id || uuidv4(),
@@ -96,7 +89,6 @@ function auctionReducer(state, action) {
         items: [...state.items, newItem]
       };
 
-    // UPDATE EXISTING ITEM
     case ActionTypes.UPDATE_ITEM:
       return {
         ...state,
@@ -107,7 +99,6 @@ function auctionReducer(state, action) {
         )
       };
 
-    // DELETE ITEM (also removes its images and comps)
     case ActionTypes.DELETE_ITEM:
       return {
         ...state,
@@ -116,7 +107,6 @@ function auctionReducer(state, action) {
         comps: state.comps.filter(comp => comp.item_id !== action.payload.item_id)
       };
 
-    // ADD IMAGE TO ITEM
     case ActionTypes.ADD_ITEM_IMAGE:
       return {
         ...state,
@@ -131,14 +121,12 @@ function auctionReducer(state, action) {
         ]
       };
 
-    // DELETE IMAGE FROM ITEM
     case ActionTypes.DELETE_ITEM_IMAGE:
       return {
         ...state,
         itemImages: state.itemImages.filter(img => img.image_id !== action.payload.image_id)
       };
 
-    // SET ALL IMAGES FOR AN ITEM (used for reordering/primary)
     case ActionTypes.SET_ITEM_IMAGES:
       return {
         ...state,
@@ -148,7 +136,6 @@ function auctionReducer(state, action) {
         ]
       };
 
-    // ADD COMPARABLE SALE
     case ActionTypes.ADD_COMP:
       return {
         ...state,
@@ -168,7 +155,6 @@ function auctionReducer(state, action) {
         ]
       };
 
-    // LOAD ALL DATA FROM API
     case ActionTypes.LOAD_ALL_DATA:
       return {
         ...state,
@@ -180,14 +166,12 @@ function auctionReducer(state, action) {
         error: null
       };
 
-    // SET LOADING STATE
     case ActionTypes.SET_LOADING:
       return {
         ...state,
         loading: action.payload
       };
 
-    // SET ERROR STATE
     case ActionTypes.SET_ERROR:
       return {
         ...state,
@@ -200,19 +184,14 @@ function auctionReducer(state, action) {
   }
 }
 
-// ---- CONTEXT SETUP ---- //
-// Create the context that will hold our auction data
 const AuctionContext = createContext(null);
 
-// Provider component that wraps our app and provides auction data
 export function AuctionProvider({ children }) {
   const [state, dispatch] = useReducer(auctionReducer, initialState);
   const { user } = useAuth();
 
-  // Load all user data when user changes (login/logout)
   useEffect(() => {
     const loadData = async () => {
-      // If no user is logged in, reset to empty state
       if (!user) {
         dispatch({
           type: ActionTypes.LOAD_ALL_DATA,
@@ -228,12 +207,9 @@ export function AuctionProvider({ children }) {
 
       try {
         dispatch({ type: ActionTypes.SET_LOADING, payload: true });
-        
-        // Use the authenticated user's ID
         const profileId = user.id;
         const data = await fetchAllUserData(profileId);
         
-        // extract item images from items
         const itemImages = [];
         data.items.forEach(item => {
           if (item.images && item.images.length > 0) {
@@ -270,12 +246,9 @@ export function AuctionProvider({ children }) {
     loadData();
   }, [user]);
 
-  // ---- HELPER FUNCTIONS ---- //
-  // Get all items that belong to a specific auction
   const getAuctionItems = auctionId =>
     state.items.filter(item => item.auction_id === auctionId);
 
-  // Get counts of auctions, items, and images for dashboard
   const getAuctionStats = () => ({
     totalAuctions: state.auctions.length,
     totalItems: state.items.length,
@@ -289,8 +262,6 @@ export function AuctionProvider({ children }) {
   );
 }
 
-// ---- CUSTOM HOOK ---- //
-// Hook to use auction data in any component
 export function useAuction() {
   const context = useContext(AuctionContext);
   if (!context) {

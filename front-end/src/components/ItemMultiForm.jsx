@@ -170,11 +170,10 @@ export function ItemMultiForm({ auctionId }) {
         // Add additional images (2nd, 3rd, 4th, 5th) to the database
         if (uploadedImages.length > 1) {
           try {
-            const additionalUrls = uploadedImages.slice(1); // All images except the first
+            const additionalUrls = uploadedImages.slice(1);
             await addItemImages(itemId, additionalUrls);
-            console.log(`Added ${additionalUrls.length} additional images for item ${itemId}`);
           } catch (addImgError) {
-            console.error(`Failed to add additional images for item ${itemId}:`, addImgError);
+            // Failed to add additional images - non-critical error
           }
         }
 

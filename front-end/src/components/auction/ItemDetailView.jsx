@@ -229,8 +229,8 @@ const ItemDetailView = ({
             {/* Title & Description */}
             <div>
               <h2 className="text-2xl font-bold text-foreground">{item.title}</h2>
-              {item.description && (
-                <p className="text-muted-foreground mt-2">{item.description}</p>
+              {item.ai_description && (
+                <p className="text-muted-foreground mt-2">{item.ai_description}</p>
               )}
             </div>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Download, FileSpreadsheet, Image, Trash2, Settings, Eye, TrendingUp, Copy, ExternalLink, Send, Clock, Loader2, Trophy, CheckCheck } from 'lucide-react';
+import { Trash2, Settings, Eye, TrendingUp, Copy, ExternalLink, Send, Clock, Loader2, CheckCheck } from 'lucide-react';
 import { ItemMultiForm } from '../components/ItemMultiForm';
 import { ItemCard } from '../components/ItemCard';
 import { Separator } from '../components/ui/separator';
@@ -9,7 +9,7 @@ import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { useAuction } from '../context/AuctionContext';
-import { deleteAuction, closeAuction, getAuctionBids } from '../services/api';
+import { deleteAuction, closeAuction, getAuctionBids, exportAuctionExcel } from '../services/api';
 import { ActionTypes } from '../context/AuctionContext';
 import { formatCurrency, copyToClipboard } from '../lib/utils';
 
@@ -95,15 +95,7 @@ export function AuctionDetailPage() {
 
   const handleExport = async (format) => {
     if (format === "excel") {
-      const res = await fetch(`${API_BASE_URL}/auctions/${auction_id}/excel`);
-      const blob = await res.blob();
-
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${auction.auction_name}.xlsx`;
-      a.click();
-      window.URL.revokeObjectURL(url);
+      await exportAuctionExcel(auction_id, auction.auction_name);
     }
   };
 

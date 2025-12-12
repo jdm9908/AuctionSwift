@@ -1,4 +1,4 @@
-import { User, Bell, Lock, Palette, Mail } from 'lucide-react';
+import { User, Bell, Lock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
