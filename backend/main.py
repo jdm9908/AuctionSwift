@@ -11,6 +11,7 @@ from typing import Optional, List
 from agents import Agent, Runner, WebSearchTool
 import asyncio
 import time
+from functools import wraps
 
 # load env from root dir
 root_dir = os.path.dirname(os.path.dirname(__file__))
@@ -26,6 +27,24 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # setup openai client for descriptions
 openai_description_client = OpenAI(api_key=OPENAI_DESCRIPTION_KEY) if OPENAI_DESCRIPTION_KEY else None
+
+# Retry decorator for Supabase operations (handles rate limiting / transient errors)
+def retry_on_error(max_retries=3, delay=0.5):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            last_error = None
+            for attempt in range(max_retries):
+                try:
+                    return func(*args, **kwargs)
+                except (httpx.ReadError, httpx.ConnectError, httpx.TimeoutException) as e:
+                    last_error = e
+                    if attempt < max_retries - 1:
+                        time.sleep(delay * (attempt + 1))  # Exponential backoff
+                    continue
+            raise HTTPException(503, f"Service temporarily unavailable after {max_retries} retries: {str(last_error)}")
+        return wrapper
+    return decorator
 
 app = FastAPI()
 
@@ -215,6 +234,7 @@ def make_payment(profile_id: str):
 
 # make new auction
 @app.post("/auctions")
+@retry_on_error(max_retries=3, delay=0.5)
 def create_auction(profile_id: str, auction_name: str):
     # check inputs
     if not auction_name.strip():
@@ -246,6 +266,7 @@ def create_auction(profile_id: str, auction_name: str):
 
 # GET auction by id
 @app.get("/auctions/{auction_id}")
+@retry_on_error(max_retries=3, delay=0.5)
 def get_auction(auction_id: str):
     # find auction
     auction = supabase.table("auctions").select("*").eq("auction_id", auction_id).execute()
@@ -255,6 +276,7 @@ def get_auction(auction_id: str):
 
 # GET all auctions for a user
 @app.get("/auctions")
+@retry_on_error(max_retries=3, delay=0.5)
 def list_auctions_by_user(profile_id: str):
     # Get all auctions for this user (don't require profile to exist in profiles table)
     # New users from Supabase Auth may not have a profiles entry yet
@@ -394,6 +416,7 @@ def create_item(
 
 # GET all items for an auction
 @app.get("/items")
+@retry_on_error(max_retries=3, delay=0.5)
 def list_items(auction_id: str = None, profile_id: str = None):
     """
     Get items by auction_id OR get all items across all auctions for a profile_id

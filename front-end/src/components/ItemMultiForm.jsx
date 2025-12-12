@@ -7,7 +7,7 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { ImageUploadZone } from './ImageUploadZone';
 import { ActionTypes, useAuction } from '../context/AuctionContext';
-import { createItem, generateComps, generateItemDescription, updateItemImage, addItemImages, createCompsBatch, getBatchStatus, getBatchResults } from '../services/api';
+import { createItem, generateComps, generateItemDescription, updateItem, updateItemImage, addItemImages, createCompsBatch, getBatchStatus, getBatchResults } from '../services/api';
 import { uploadItemImage } from '../services/storage';
 
 export function ItemMultiForm({ auctionId }) {
