@@ -110,6 +110,7 @@ export const updateItem = async (itemId, updates) => {
   if (updates.model !== undefined) params.append('model', updates.model);
   if (updates.year !== undefined) params.append('year', updates.year);
   if (updates.status !== undefined) params.append('status', updates.status);
+  if (updates.ai_description !== undefined) params.append('ai_description', updates.ai_description);
 
   const response = await fetch(`${API_BASE_URL}/items/${itemId}?${params.toString()}`, {
     method: 'PUT',

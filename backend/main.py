@@ -562,7 +562,8 @@ def update_item(
     title: str = None,
     brand: str = None,
     model: str = None,
-    year: int = None
+    year: int = None,
+    ai_description: str = None
 ):
     # check item exists
     item = supabase.table("items").select("item_id").eq("item_id", item_id).execute()
@@ -579,6 +580,8 @@ def update_item(
         updates["model"] = model.strip()
     if year is not None:
         updates["year"] = year
+    if ai_description is not None:
+        updates["ai_description"] = ai_description.strip()
 
     if not updates:
         raise HTTPException(400, "No fields to update")

@@ -1,8 +1,13 @@
-// Storage Service - Supabase image uploads\nimport { supabase } from '../lib/supabaseClient';
+// Storage Service - Supabase image uploads
+import { supabase } from '../lib/supabaseClient';
 
 const BUCKET_NAME = 'images2';
 
 export const uploadItemImage = async (file, itemId) => {
+  if (!supabase) {
+    throw new Error('Supabase client not initialized. Check environment variables.');
+  }
+  
   try {
     const timestamp = Date.now();
     const fileExt = file.name.split('.').pop();

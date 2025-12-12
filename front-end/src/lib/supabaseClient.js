@@ -8,7 +8,11 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLIC;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables. Check VITE_SUPABASE_URL and VITE_SUPABASE_PUBLIC');
+  console.error('VITE_SUPABASE_URL:', supabaseUrl ? 'set' : 'MISSING');
+  console.error('VITE_SUPABASE_PUBLIC:', supabaseAnonKey ? 'set' : 'MISSING');
 }
 
-// Create and export the Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Create and export the Supabase client (will be null if env vars missing)
+export const supabase = (supabaseUrl && supabaseAnonKey) 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null;
