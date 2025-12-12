@@ -132,7 +132,7 @@ export function HomePage() {
             initial={{ opacity: 0, y: 40 }}
             animate={s3Visible ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className={stepCommon}
+            className={stepCommon + " md:col-span-2 lg:col-span-1"}
           >
             <h3 className="text-lg font-semibold mb-2">3. Let AI do the work</h3>
             <p className="text-sm md:text-base text-neutral-200">
@@ -140,14 +140,17 @@ export function HomePage() {
               manual research and pricing.
             </p>
           </motion.div>
+        </div>
 
+        {/* Bottom row - centered with flex */}
+        <div className="flex flex-wrap gap-7 justify-center mt-7">
           {/* Step 4 */}
           <motion.div
             ref={s4Ref}
             initial={{ opacity: 0, y: 40 }}
             animate={s4Visible ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5, delay: 0.15 }}
-            className={stepCommon}
+            className={stepCommon + " w-full md:w-[calc(50%-14px)] lg:w-[calc(33.333%-19px)]"}
           >
             <h3 className="text-lg font-semibold mb-2">4. Configure your auction</h3>
             <p className="text-sm md:text-base text-neutral-200">
@@ -162,7 +165,7 @@ export function HomePage() {
             initial={{ opacity: 0, y: 40 }}
             animate={s5Visible ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className={stepCommon + " md:col-span-2 lg:col-span-1"}
+            className={stepCommon + " w-full md:w-[calc(50%-14px)] lg:w-[calc(33.333%-19px)]"}
           >
             <h3 className="text-lg font-semibold mb-2">5. Launch, monitor and get paid</h3>
             <p className="text-sm md:text-base text-neutral-200">
